@@ -1,14 +1,25 @@
 {
-  "name": "frontend",
+  "name": "routine-scheduler-frontend",
   "version": "0.1.0",
   "private": true,
+  "author": "Md. Jehadul Karim",
+  "description": "This is the frontend of Routine Scheduler",
   "dependencies": {
+    "@mdi/font": "^7.2.96",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "bootstrap": "^4.6.0",
+    "compass-mixins": "^0.12.12",
+    "nouislider": "^15.7.1",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.8.0",
+    "react-bootstrap-typeahead": "^6.2.3",
+    "react-datepicker": "^4.16.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^5.3.4",
     "react-scripts": "5.0.1",
+    "scss": "^0.2.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

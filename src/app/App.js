@@ -1,3 +1,12 @@
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+import './App.scss';
+import AppRoutes from './AppRoutes';
+import Navbar from './shared/Navbar';
+import Sidebar from './shared/Sidebar';
+import SettingsPanel from './shared/SettingsPanel';
+import Footer from './shared/Footer';
+
 import logo from './logo.svg';
 import './App.css';
 
@@ -22,4 +31,4 @@ function App() {
   );
 }
 
-export default App;
+export default withRouter(App);
