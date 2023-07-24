@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
 import { Tabs, Tab } from 'react-bootstrap';
-import { Trans } from 'react-i18next';
-
 export class SettingsPanel extends Component {
 
   constructor(props) {
@@ -177,7 +175,7 @@ closeRightSidebar() {
                   <div className="col-lg-12">
                     <div className="px-3">
                       <div>
-                        <h4 className="card-title"><Trans>Todo List</Trans></h4>
+                        <h4 className="card-title">Todo List</h4>
                         <form  className="add-items d-flex" onSubmit={this.addTodo}>
                           <input 
                             type="text" 
@@ -186,7 +184,7 @@ closeRightSidebar() {
                             value={this.state.inputValue} 
                             onChange={this.inputChangeHandler}
                             required />
-                          <button type="submit" className="btn btn-gradient-primary font-weight-bold"><Trans>Add</Trans></button>
+                          <button type="submit" className="btn btn-gradient-primary font-weight-bold">Add</button>
                         </form>
                         <div className="list-wrapper">
                           <ul className="todo-list">
@@ -217,78 +215,78 @@ closeRightSidebar() {
                 <div className="events py-4 border-bottom px-3">
                   <div className="wrapper d-flex mb-2">
                     <i className="mdi mdi-circle-outline text-primary mr-2"></i>
-                    <span><Trans>Feb</Trans> 11 2018</span>
+                    <span>Feb 11 2018</span>
                   </div>
-                  <p className="mb-0 font-weight-thin text-gray"><Trans>Creating component page</Trans></p>
-                  <p className="text-gray mb-0"><Trans>build a js based app</Trans></p>
+                  <p className="mb-0 font-weight-thin text-gray">Creating component page</p>
+                  <p className="text-gray mb-0">build a js based app</p>
                 </div>
                 <div className="events pt-4 px-3">
                   <div className="wrapper d-flex mb-2">
                     <i className="mdi mdi-circle-outline text-primary mr-2"></i>
-                    <span><Trans>Feb</Trans> 7 2018</span>
+                    <span>Feb 7 2018</span>
                   </div>
-                  <p className="mb-0 font-weight-thin text-gray"><Trans>Meeting with Alisa</Trans></p>
-                  <p className="text-gray mb-0 "><Trans>Call Sarah Graves</Trans></p>
+                  <p className="mb-0 font-weight-thin text-gray">Meeting with Alisa</p>
+                  <p className="text-gray mb-0 ">Call Sarah Graves</p>
                 </div>
               </div>
             </Tab>
             <Tab eventKey="CHATS" title="CHATS">
               <div>
                 <div className="d-flex align-items-center justify-content-between border-bottom">
-                  <p className="settings-heading border-top-0 mb-3 pl-3 pt-0 border-bottom-0 pb-0"><Trans>FRIENDS</Trans></p>
-                  <small className="settings-heading border-top-0 mb-3 pt-0 border-bottom-0 pb-0 pr-3 font-weight-normal"><Trans>See All</Trans></small>
+                  <p className="settings-heading border-top-0 mb-3 pl-3 pt-0 border-bottom-0 pb-0">FRIENDS</p>
+                  <small className="settings-heading border-top-0 mb-3 pt-0 border-bottom-0 pb-0 pr-3 font-weight-normal">See All</small>
                 </div>
                 <ul className="chat-list">
                   <li className="list active">
                     <div className="profile"><img src={ require("../../assets/images/faces/face1.jpg")} alt="profile" /><span className="online"></span></div>
                     <div className="info">
-                      <p><Trans>Thomas Douglas</Trans></p>
-                      <p><Trans>Available</Trans></p>
+                      <p>Thomas Douglas</p>
+                      <p>Available</p>
                     </div>
-                    <small className="text-muted my-auto">19 <Trans>min</Trans></small>
+                    <small className="text-muted my-auto">19 min</small>
                   </li>
                   <li className="list">
                     <div className="profile"><img src={ require("../../assets/images/faces/face2.jpg")} alt="profile" /><span className="offline"></span></div>
                     <div className="info">
                       <div className="wrapper d-flex">
-                        <p><Trans>Catherine</Trans></p>
+                        <p>Catherine</p>
                       </div>
-                      <p><Trans>Away</Trans></p>
+                      <p>Away</p>
                     </div>
                     <div className="badge badge-success badge-pill my-auto mx-2">4</div>
-                    <small className="text-muted my-auto">23 <Trans>min</Trans></small>
+                    <small className="text-muted my-auto">23 min</small>
                   </li>
                   <li className="list">
                     <div className="profile"><img src={ require("../../assets/images/faces/face3.jpg")} alt="profile" /><span className="online"></span></div>
                     <div className="info">
-                      <p><Trans>Daniel Russell</Trans></p>
-                      <p><Trans>Available</Trans></p>
+                      <p>Daniel Russell</p>
+                      <p>Available</p>
                     </div>
-                    <small className="text-muted my-auto">14 <Trans>min</Trans></small>
+                    <small className="text-muted my-auto">14 min</small>
                   </li>
                   <li className="list">
                     <div className="profile"><img src={ require("../../assets/images/faces/face4.jpg")} alt="profile" /><span className="offline"></span></div>
                     <div className="info">
-                      <p><Trans>James Richardson</Trans></p>
-                      <p><Trans>Away</Trans></p>
+                      <p>James Richardson</p>
+                      <p>Away</p>
                     </div>
-                    <small className="text-muted my-auto">2 <Trans>min</Trans></small>
+                    <small className="text-muted my-auto">2 min</small>
                   </li>
                   <li className="list">
                     <div className="profile"><img src={ require("../../assets/images/faces/face5.jpg")} alt="profile" /><span className="online"></span></div>
                     <div className="info">
-                      <p><Trans>Madeline Kennedy</Trans></p>
-                      <p><Trans>Available</Trans></p>
+                      <p>Madeline Kennedy</p>
+                      <p>Available</p>
                     </div>
-                    <small className="text-muted my-auto">5 <Trans>min</Trans></small>
+                    <small className="text-muted my-auto">5 min</small>
                   </li>
                   <li className="list">
                     <div className="profile"><img src={ require("../../assets/images/faces/face6.jpg")} alt="profile" /><span className="online"></span></div>
                     <div className="info">
-                      <p><Trans>Sarah Graves</Trans></p>
-                      <p><Trans>Available</Trans></p>
+                      <p>Sarah Graves</p>
+                      <p>Available</p>
                     </div>
-                    <small className="text-muted my-auto">47 <Trans>min</Trans></small>
+                    <small className="text-muted my-auto">47 min</small>
                   </li>
                 </ul>
               </div>
