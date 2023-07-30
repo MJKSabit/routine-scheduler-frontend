@@ -20,7 +20,7 @@ class Navbar extends Component {
           <button className="navbar-toggler navbar-toggler align-self-center" type="button" onClick={ () => document.body.classList.toggle('sidebar-icon-only') }>
             <span className="mdi mdi-menu"></span>
           </button>
-          <div className="search-field d-none d-md-block">
+          {/* <div className="search-field d-none d-md-block">
             <form className="d-flex align-items-center h-100" action="#">
               <div className="input-group">
                 <div className="input-group-prepend bg-transparent">
@@ -29,7 +29,7 @@ class Navbar extends Component {
                 <input type="text" className="form-control bg-transparent border-0" placeholder="Search projects"/>
               </div>
             </form>
-          </div>
+          </div> */}
           <ul className="navbar-nav navbar-nav-right">
             <li className="nav-item nav-profile">
               <Dropdown alignRight>
@@ -39,7 +39,7 @@ class Navbar extends Component {
                     <span className="availability-status online"></span>
                   </div>
                   <div className="nav-profile-text">
-                    <p className="mb-1 text-black">David Greymaax</p>
+                    <p className="mb-1 text-black">MJKSabit</p>
                   </div>
                 </Dropdown.Toggle>
 
@@ -55,7 +55,7 @@ class Navbar extends Component {
                 </Dropdown.Menu>
               </Dropdown>
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link count-indicator">
                   <i className="mdi mdi-email-outline"></i>
@@ -104,7 +104,7 @@ class Navbar extends Component {
                   <h6 className="p-3 mb-0 text-center cursor-pointer">4 new messages</h6>
                 </Dropdown.Menu>
               </Dropdown>
-            </li>
+            </li> */}
             <li className="nav-item">
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link count-indicator">
