@@ -110,3 +110,13 @@
 @import "../assets/styles/footer";
 @import "../assets/styles/layout";
 @import "../assets/styles/settings-panel";
+
+.btn-close {
+    // Add &times; to close button
+    &:before {
+        content: "\00d7";
+    }
+
+    // no border
+    border-radius: 5px;
+}
