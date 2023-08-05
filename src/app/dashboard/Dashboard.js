@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Card } from "react-bootstrap";
+import { Alert, Button, Card, Form, InputGroup, Modal } from "react-bootstrap";
 
 function App() {
   return (
@@ -84,8 +84,15 @@ function App() {
           <div className="card">
             <div className="card-body">
               <h4 className="card-title mb-5">Email Templates</h4>
-              <div class="row flex-row flex-nowrap " style={{overflowX: 'auto'}}>
-                <Card style={{ width: "28rem" }} bg="light" className="mr-3 col-4">
+              <div
+                class="row flex-row flex-nowrap "
+                style={{ overflowX: "auto" }}
+              >
+                <Card
+                  style={{ width: "28rem" }}
+                  bg="light"
+                  className="mr-3 col-4"
+                >
                   <Card.Body>
                     <Card.Title>
                       Theory Course{" "}
@@ -95,10 +102,9 @@ function App() {
                       For selecting course
                     </Card.Subtitle>
                     <Card.Text>
-                      Hello {"{"}teacher_name{"}"}! <br />
-                      I would like to request you to fill up the form attached
-                      to this email for giving your preferred theory course.{" "}
-                      <br />
+                      Hello {"{"}teacher_name{"}"}! <br />I would like to
+                      request you to fill up the form attached to this email for
+                      giving your preferred theory course. <br />
                       {"{"}link{"}"} <br />
                       Thank you.
                     </Card.Text>
@@ -108,12 +114,76 @@ function App() {
                     </Button>
                   </Card.Body>
                 </Card>
-                
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <div className="row">
+        <div className="col-12 grid-margin">
+          <div className="card">
+            <div className="card-body">
+              <h4 className="card-title mb-4">Gmail Credentials</h4>
+              <Alert variant="info" className="mb-3">
+                <Alert.Heading>How to get Gmail Credentials?</Alert.Heading>
+                <p>
+                  <ol>
+                    <li>
+                      Go to{" "}
+                      <a href="https://myaccount.google.com/lesssecureapps">
+                        https://myaccount.google.com/lesssecureapps
+                      </a>
+                    </li>
+                    <li>Turn on the option</li>
+                    <li>Save the credentials</li>
+                  </ol>
+                </p>
+              </Alert>
+              <Form>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text>Email</InputGroup.Text>
+                  <Form.Control placeholder="Gmail Username" type="email" />
+                  <InputGroup.Text>@gmail.com</InputGroup.Text>
+                </InputGroup>
+                <InputGroup className="mb-3">
+                  <InputGroup.Text>Password</InputGroup.Text>
+                  <Form.Control placeholder="Gmail Password" type="password" />
+                </InputGroup>
+                <Button className="btn-gradient-primary float-right">
+                  Save
+                </Button>
+              </Form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Modal show={false} onHide={() => {}}>
+        <Modal.Header closeButton>
+          <Modal.Title>Theory Course Preference</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <textarea
+            className="form-control"
+            rows="10"
+            value={`Hello {teacher_name}! <br />;
+I would like to request you to
+fill up the form attached to this email for giving your preferred
+theory course. <br />
+{link} <br />
+Thank you.`}
+          ></textarea>
+          <Alert variant="info" className="mt-3">
+            Available Variables: <br /> <br />
+            <code> teacher_name </code> <code> link </code>
+          </Alert>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary">Close</Button>
+          <Button variant="primary">Save changes</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
