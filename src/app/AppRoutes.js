@@ -5,10 +5,11 @@ import Spinner from "../app/shared/Spinner";
 import { useContext } from "react";
 import { UserContext } from "./App";
 
-const Dashboard = lazy(() => import("./dashboard/Dashboard"));
-const Teachers = lazy(() => import("./database/Teachers"));
-const Sections = lazy(() => import("./database/Sections"));
-const Rooms = lazy(() => import("./database/Rooms"));
+const Dashboard = lazy(() => import('./dashboard/Dashboard'));
+const Teachers = lazy(() => import('./database/Teachers'));
+const Sections = lazy(() => import('./database/Sections'));
+const Rooms = lazy(() => import('./database/Rooms'));
+const Courses = lazy(() => import('./database/Courses'));
 
 const Error404 = lazy(() => import("./error-pages/Error404"));
 const Error500 = lazy(() => import("./error-pages/Error500"));
@@ -29,6 +30,7 @@ export default function AppRoutes() {
           <Route path="/database/teachers" component={Teachers} />
           <Route path="/database/sections" component={Sections} />
           <Route path="/database/rooms" component={Rooms} />
+          <Route path="/database/courses" component={ Courses } />
           <Redirect to="/dashboard" />
         </Switch>
       ) : (
