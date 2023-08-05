@@ -1,4 +1,3 @@
-import React, { Component } from "react";
 import { useContext } from "react";
 import { Dropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
@@ -75,7 +74,11 @@ function Navbar() {
                 </Dropdown.Item>
                 <Dropdown.Item
                   href="!#"
-                  onClick={(evt) => evt.preventDefault()}
+                  onClick={(evt) => {
+                    evt.preventDefault();
+                    localStorage.removeItem("token");
+                    setUser(undefined);
+                  }}
                 >
                   <i className="mdi mdi-logout mr-2 text-primary"></i>
                   Signout
