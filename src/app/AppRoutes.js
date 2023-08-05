@@ -23,7 +23,7 @@ export default function AppRoutes() {
 
   return (
     <Suspense fallback={<Spinner />}>
-      {user ? (
+      {user.loggedIn ? (
         <Switch>
           <Route exact path="/dashboard" component={Dashboard} />
           <Route path="/database/teachers" component={Teachers} />

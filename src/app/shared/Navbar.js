@@ -77,7 +77,8 @@ function Navbar() {
                   onClick={(evt) => {
                     evt.preventDefault();
                     localStorage.removeItem("token");
-                    setUser(undefined);
+                    setUser({loggedIn: false});
+                    console.log("signout");
                   }}
                 >
                   <i className="mdi mdi-logout mr-2 text-primary"></i>
@@ -211,7 +212,8 @@ function Navbar() {
               onClick={(event) => {
                 event.preventDefault();
                 localStorage.removeItem("token");
-                setUser(undefined);
+                setUser({loggedIn: false});
+                console.log("logout");
               }}
             >
               <i className="mdi mdi-power"></i>
