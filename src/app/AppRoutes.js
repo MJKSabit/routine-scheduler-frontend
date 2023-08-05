@@ -7,6 +7,7 @@ const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Teachers = lazy(() => import('./database/Teachers'));
 const Sections = lazy(() => import('./database/Sections'));
 const Rooms = lazy(() => import('./database/Rooms'));
+const Courses = lazy(() => import('./database/Courses'));
 
 // const Buttons = lazy(() => import('./basic-ui/Buttons'));
 // const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
@@ -40,6 +41,7 @@ class AppRoutes extends Component {
           <Route path="/database/teachers" component={ Teachers } />
           <Route path="/database/sections" component={ Sections } />
           <Route path="/database/rooms" component={ Rooms } />
+          <Route path="/database/courses" component={ Courses } />
 
 {/* 
           <Route path="/basic-ui/buttons" component={ Buttons } />
