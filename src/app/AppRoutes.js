@@ -24,7 +24,7 @@ const Error500 = lazy(() => import('./error-pages/Error500'));
 
 const Login = lazy(() => import('./user-pages/Login'));
 const Register1 = lazy(() => import('./user-pages/Register'));
-const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
+const ForgetPassword = lazy(() => import('./user-pages/ForgetPassword'));
 
 const BlankPage = lazy(() => import('./general-pages/BlankPage'));
 
@@ -54,9 +54,9 @@ class AppRoutes extends Component {
           <Route path="/charts/chart-js" component={ ChartJs } /> */}
 
 
-          <Route path="/user-pages/login-1" component={ Login } />
+          <Route path="/auth/login" component={ Login } />
           <Route path="/user-pages/register-1" component={ Register1 } />
-          <Route path="/user-pages/lockscreen" component={ Lockscreen } />
+          <Route path="/auth/forgot-password" component={ ForgetPassword } />
 
           <Route path="/error-pages/error-404" component={ Error404 } />
           <Route path="/error-pages/error-500" component={ Error500 } />

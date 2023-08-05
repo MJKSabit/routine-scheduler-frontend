@@ -254,16 +254,23 @@ export default function Teachers() {
                 </Col>
                 <Col className="px-2 py-1 d-flex align-items-center">
                   {/* Currently Active Checkbox */}
-                  <FormCheck
-                    label="Currently Active"
-                    checked={selectedTeacher.active}
-                    onChange={(e) =>
-                      setSelectedTeacher({
-                        ...selectedTeacher,
-                        active: e.target.checked,
-                      })
-                    }
-                  />
+                  <div className="form-check">
+                    <label className="form-check-label">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={selectedTeacher.active}
+                        onChange={(e) =>
+                          setSelectedTeacher({
+                            ...selectedTeacher,
+                            active: e.target.checked,
+                          })
+                        }
+                      />
+                      <i className="input-helper"></i>
+                      Active
+                    </label>
+                  </div>
                 </Col>
               </Row>
               <Row>

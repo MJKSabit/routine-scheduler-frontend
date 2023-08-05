@@ -27,6 +27,9 @@ function App(props) {
     console.log("ROUTE CHANGED");
     window.scrollTo(0, 0);
     const fullPageLayoutRoutes = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/forgot-password',
       '/user-pages/login-1',
       '/user-pages/register-1',
       '/user-pages/lockscreen',
@@ -67,26 +70,5 @@ function App(props) {
     </div>
   );
 }
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
 
 export default withRouter(App);
