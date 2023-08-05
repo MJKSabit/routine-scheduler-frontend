@@ -1,10 +1,5 @@
 import React from "react";
-import { ProgressBar } from "react-bootstrap";
-// import {Bar, Doughnut} from 'react-chartjs-2';
-import DatePicker from "react-datepicker";
-import logo from "../logo.svg";
-
-// import "react-datepicker/dist/react-datepicker.css";
+import { Button, Card } from "react-bootstrap";
 
 function App() {
   return (
@@ -30,7 +25,9 @@ function App() {
           <div className="card bg-gradient-danger card-img-holder text-white">
             <div className="card-body">
               <img
-                src={require("../../assets/images/dashboard/circle.svg").default}
+                src={
+                  require("../../assets/images/dashboard/circle.svg").default
+                }
                 className="card-img-absolute"
                 alt="circle"
               />
@@ -47,7 +44,9 @@ function App() {
           <div className="card bg-gradient-info card-img-holder text-white">
             <div className="card-body">
               <img
-                src={require("../../assets/images/dashboard/circle.svg").default}
+                src={
+                  require("../../assets/images/dashboard/circle.svg").default
+                }
                 className="card-img-absolute"
                 alt="circle"
               />
@@ -64,7 +63,9 @@ function App() {
           <div className="card bg-gradient-success card-img-holder text-white">
             <div className="card-body">
               <img
-                src={require("../../assets/images/dashboard/circle.svg").default}
+                src={
+                  require("../../assets/images/dashboard/circle.svg").default
+                }
                 className="card-img-absolute"
                 alt="circle"
               />
@@ -74,6 +75,41 @@ function App() {
               </h4>
               <h2 className="mb-5">Prof. MMA</h2>
               <h6 className="card-text">Provided Schedule</h6>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-12 grid-margin">
+          <div className="card">
+            <div className="card-body">
+              <h4 className="card-title mb-5">Email Templates</h4>
+              <div class="row flex-row flex-nowrap " style={{overflowX: 'auto'}}>
+                <Card style={{ width: "28rem" }} bg="light" className="mr-3 col-4">
+                  <Card.Body>
+                    <Card.Title>
+                      Theory Course{" "}
+                      <i className="mdi mdi-email-open-outline mdi-24px float-right"></i>{" "}
+                    </Card.Title>
+                    <Card.Subtitle className="mb-2 text-muted">
+                      For selecting course
+                    </Card.Subtitle>
+                    <Card.Text>
+                      Hello {"{"}teacher_name{"}"}! <br />
+                      I would like to request you to fill up the form attached
+                      to this email for giving your preferred theory course.{" "}
+                      <br />
+                      {"{"}link{"}"} <br />
+                      Thank you.
+                    </Card.Text>
+                    <Button variant="outline-success">Copy</Button>
+                    <Button variant="outline-primary" className="float-right">
+                      Edit
+                    </Button>
+                  </Card.Body>
+                </Card>
+                
+              </div>
             </div>
           </div>
         </div>

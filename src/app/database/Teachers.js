@@ -76,8 +76,10 @@ export default function Teachers() {
           <div className="card">
             <div className="card-body">
               <h4 className="card-title float-right">
-                <button type="button" className="btn btn-success btn-sm"
-                  onClick={e => {
+                <button
+                  type="button"
+                  className="btn btn-success btn-sm"
+                  onClick={(e) => {
                     setSelectedTeacher({
                       initial: "",
                       name: "",
@@ -88,7 +90,8 @@ export default function Teachers() {
                       theory_courses: 0,
                       sessional_courses: 0,
                     });
-                  }}>
+                  }}
+                >
                   Add New Teacher
                 </button>
               </h4>
@@ -127,7 +130,9 @@ export default function Teachers() {
                             <button
                               type="button"
                               className="btn btn-primary btn-sm"
-                              onClick={() => setSelectedTeacher({ ...teacher, index })}
+                              onClick={() =>
+                                setSelectedTeacher({ ...teacher, index })
+                              }
                             >
                               Edit
                             </button>
@@ -151,7 +156,12 @@ export default function Teachers() {
       </div>
 
       {selectedTeacher !== null && (
-        <Modal show={true} onHide={() => setSelectedTeacher(null)} size="md" centered>
+        <Modal
+          show={true}
+          onHide={() => setSelectedTeacher(null)}
+          size="md"
+          centered
+        >
           <Modal.Header closeButton>Add / Edit Teacher</Modal.Header>
           <Modal.Body className="px-4">
             <Form className="px-2 py-1">
@@ -159,15 +169,33 @@ export default function Teachers() {
                 <Col md={4} className="px-2 py-1">
                   <FormGroup>
                     <Form.Label>Initial</Form.Label>
-                    <FormControl type="text" placeholder="Enter Initial" value={selectedTeacher.initial}
-                      onChange={e => setSelectedTeacher({ ...selectedTeacher, initial: e.target.value })} />
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Initial"
+                      value={selectedTeacher.initial}
+                      onChange={(e) =>
+                        setSelectedTeacher({
+                          ...selectedTeacher,
+                          initial: e.target.value,
+                        })
+                      }
+                    />
                   </FormGroup>
                 </Col>
                 <Col className="px-2 py-1">
                   <FormGroup>
                     <Form.Label>Name</Form.Label>
-                    <FormControl type="text" placeholder="Enter Name" value={selectedTeacher.name}
-                      onChange={e => setSelectedTeacher({ ...selectedTeacher, name: e.target.value })} />
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Name"
+                      value={selectedTeacher.name}
+                      onChange={(e) =>
+                        setSelectedTeacher({
+                          ...selectedTeacher,
+                          name: e.target.value,
+                        })
+                      }
+                    />
                   </FormGroup>
                 </Col>
               </Row>
@@ -175,15 +203,33 @@ export default function Teachers() {
                 <Col md={4} className="px-2 py-1">
                   <FormGroup>
                     <Form.Label>Surname</Form.Label>
-                    <FormControl type="text" placeholder="Enter Surname" value={selectedTeacher.surname}
-                      onChange={e => setSelectedTeacher({ ...selectedTeacher, surname: e.target.value })} />
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Surname"
+                      value={selectedTeacher.surname}
+                      onChange={(e) =>
+                        setSelectedTeacher({
+                          ...selectedTeacher,
+                          surname: e.target.value,
+                        })
+                      }
+                    />
                   </FormGroup>
                 </Col>
                 <Col className="px-2 py-1">
                   <FormGroup>
                     <Form.Label>Email</Form.Label>
-                    <FormControl type="text" placeholder="Enter Email" value={selectedTeacher.email}
-                      onChange={e => setSelectedTeacher({ ...selectedTeacher, email: e.target.value })} />
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Email"
+                      value={selectedTeacher.email}
+                      onChange={(e) =>
+                        setSelectedTeacher({
+                          ...selectedTeacher,
+                          email: e.target.value,
+                        })
+                      }
+                    />
                   </FormGroup>
                 </Col>
               </Row>
@@ -195,14 +241,29 @@ export default function Teachers() {
                       type="text"
                       placeholder="Enter Seniority Rank"
                       value={selectedTeacher.seniority_rank}
-                      onChange={e => setSelectedTeacher({ ...selectedTeacher, seniority_rank: Number.parseInt(e.target.value || '0') })}
+                      onChange={(e) =>
+                        setSelectedTeacher({
+                          ...selectedTeacher,
+                          seniority_rank: Number.parseInt(
+                            e.target.value || "0"
+                          ),
+                        })
+                      }
                     />
                   </FormGroup>
                 </Col>
                 <Col className="px-2 py-1 d-flex align-items-center">
                   {/* Currently Active Checkbox */}
-                  <FormCheck label="Currently Active" checked={selectedTeacher.active}
-                    onChange={e => setSelectedTeacher({ ...selectedTeacher, active: e.target.checked })} />
+                  <FormCheck
+                    label="Currently Active"
+                    checked={selectedTeacher.active}
+                    onChange={(e) =>
+                      setSelectedTeacher({
+                        ...selectedTeacher,
+                        active: e.target.checked,
+                      })
+                    }
+                  />
                 </Col>
               </Row>
               <Row>
@@ -213,7 +274,14 @@ export default function Teachers() {
                       type="text"
                       placeholder="Enter Number Theory Courses to take"
                       value={selectedTeacher.theory_courses}
-                      onChange={e => setSelectedTeacher({ ...selectedTeacher, theory_courses: Number.parseInt(e.target.value || '0') })}
+                      onChange={(e) =>
+                        setSelectedTeacher({
+                          ...selectedTeacher,
+                          theory_courses: Number.parseInt(
+                            e.target.value || "0"
+                          ),
+                        })
+                      }
                     />
                   </FormGroup>
                 </Col>
@@ -224,7 +292,14 @@ export default function Teachers() {
                       type="text"
                       placeholder="Enter Number Sessional Courses to take"
                       value={selectedTeacher.sessional_courses}
-                      onChange={e => setSelectedTeacher({ ...selectedTeacher, sessional_courses: Number.parseInt(e.target.value || '0') })}
+                      onChange={(e) =>
+                        setSelectedTeacher({
+                          ...selectedTeacher,
+                          sessional_courses: Number.parseInt(
+                            e.target.value || "0"
+                          ),
+                        })
+                      }
                     />
                   </FormGroup>
                 </Col>
@@ -232,28 +307,40 @@ export default function Teachers() {
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="outline-dark" onClick={() => (setSelectedTeacher(null))}>
+            <Button
+              variant="outline-dark"
+              onClick={() => setSelectedTeacher(null)}
+            >
               Close
             </Button>
-            <Button variant="success" onClick={e => {
-              e.preventDefault();
-              const result = validate(selectedTeacher);
-              if (result === null)
-                toast.success('Teacher saved successfully');
-              else
-                toast.error(result);
-            }}>Save</Button>
+            <Button
+              variant="success"
+              onClick={(e) => {
+                e.preventDefault();
+                const result = validate(selectedTeacher);
+                if (result === null)
+                  toast.success("Teacher saved successfully");
+                else toast.error(result);
+              }}
+            >
+              Save
+            </Button>
           </Modal.Footer>
         </Modal>
       )}
 
-      <Modal show={deleteTeacher !== null} onHide={() => setDeleteTeacher(null)} size="md" centered>
+      <Modal
+        show={deleteTeacher !== null}
+        onHide={() => setDeleteTeacher(null)}
+        size="md"
+        centered
+      >
         <Modal.Header closeButton>Delete Teacher</Modal.Header>
         <Modal.Body className="px-4">
           <p>Are you sure you want to delete this teacher?</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="outline-dark" onClick={() => (setDeleteTeacher(null))}>
+          <Button variant="outline-dark" onClick={() => setDeleteTeacher(null)}>
             Close
           </Button>
           <Button variant="danger">Delete</Button>
