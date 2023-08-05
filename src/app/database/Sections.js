@@ -206,7 +206,7 @@ export default function Sections() {
                     <Form.Label>Type</Form.Label>
                     <br />
                     <Form.Select
-                      
+                      size="lg"
                       value={selectedSection.type === "Theory" ? "0" : "1"}
                       onChange={(e) =>
                         setSelectedSection({
