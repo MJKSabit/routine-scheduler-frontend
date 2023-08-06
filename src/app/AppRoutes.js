@@ -11,6 +11,8 @@ const Sections = lazy(() => import('./database/Sections'));
 const Rooms = lazy(() => import('./database/Rooms'));
 const Courses = lazy(() => import('./database/Courses'));
 
+const TheorySelect = lazy(() => import("./forms/TheorySelect"));
+
 const Error404 = lazy(() => import("./error-pages/Error404"));
 const Error500 = lazy(() => import("./error-pages/Error500"));
 
@@ -24,6 +26,8 @@ export default function AppRoutes() {
 
   return (
     <Suspense fallback={<Spinner />}>
+      <Switch>
+      <Route exact path="/form/theory-pref/:id" component={TheorySelect} />
       {user.loggedIn ? (
         <Switch>
           <Route exact path="/dashboard" component={Dashboard} />
@@ -40,6 +44,7 @@ export default function AppRoutes() {
           <Redirect to="/auth/login" />
         </Switch>
       )}
+      </Switch>
     </Suspense>
   );
 }

@@ -50,15 +50,10 @@ function App(props) {
     const fullPageLayoutRoutes = [
       "/auth/login",
       "/auth/forgot-password",
-      "/user-pages/login-1",
-      "/user-pages/register-1",
-      "/user-pages/lockscreen",
-      "/error-pages/error-404",
-      "/error-pages/error-500",
-      "/general-pages/landing-page",
+      "/form/"
     ];
-    const isFullPageLayout = fullPageLayoutRoutes.includes(location.pathname);
-    console.log("isFullPageLayout: ", isFullPageLayout);
+    const isFullPageLayout = fullPageLayoutRoutes.some(l => location.pathname.startsWith(l))
+    console.log("isFullPageLayout: ", isFullPageLayout, location.pathname);
     setIsFullPageLayout(isFullPageLayout);
 
     if (isFullPageLayout) {
