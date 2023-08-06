@@ -1,7 +1,14 @@
+import { useEffect } from "react";
 import { useState } from "react";
 import { Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 import { toast } from "react-hot-toast";
+import {
+  createTeacher,
+  deleteTeacher,
+  getTeachers,
+  updateTeacher,
+} from "../api/db-crud";
 
 const initial_regex = /^[A-Z]{2,6}$/;
 const email_regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$/;
@@ -38,21 +45,16 @@ const validate = (teacher) => {
 };
 
 export default function Teachers() {
-  const [teachers, setTeachers] = useState([
-    {
-      initial: "MMI",
-      name: "Md. Monirul Islam",
-      surname: "Monir",
-      email: "mmi@cse.buet.ac.bd",
-      seniority_rank: 4,
-      active: 1,
-      theory_courses: 1,
-      sessional_courses: 1,
-    },
-  ]);
+  const [teachers, setTeachers] = useState([]);
+
+  useEffect(() => {
+    getTeachers().then((res) => {
+      setTeachers(res);
+    });
+  }, []);
 
   const [selectedTeacher, setSelectedTeacher] = useState(null);
-  const [deleteTeacher, setDeleteTeacher] = useState(null);
+  const [deleteTeacherSelected, setDeleteTeacherSelected] = useState(null);
 
   return (
     <div>
@@ -89,6 +91,7 @@ export default function Teachers() {
                       active: 1,
                       theory_courses: 0,
                       sessional_courses: 0,
+                      prev_initial: "",
                     });
                   }}
                 >
@@ -131,7 +134,11 @@ export default function Teachers() {
                               type="button"
                               className="btn btn-primary btn-sm"
                               onClick={() =>
-                                setSelectedTeacher({ ...teacher, index })
+                                setSelectedTeacher({
+                                  ...teacher,
+                                  index,
+                                  prev_initial: teacher.initial,
+                                })
                               }
                             >
                               Edit
@@ -139,7 +146,9 @@ export default function Teachers() {
                             <button
                               type="button"
                               className="btn btn-danger btn-sm"
-                              onClick={() => setDeleteTeacher(index)}
+                              onClick={() =>
+                                setDeleteTeacherSelected(teacher.initial)
+                              }
                             >
                               Delete
                             </button>
@@ -162,7 +171,9 @@ export default function Teachers() {
           size="md"
           centered
         >
-          <Modal.Header closeButton>Add / Edit Teacher</Modal.Header>
+          <Modal.Header closeButton>
+            {selectedTeacher.prev_initial === "" ? "Add" : "Edit"} Teacher
+          </Modal.Header>
           <Modal.Body className="px-4">
             <Form className="px-2 py-1">
               <Row>
@@ -263,7 +274,7 @@ export default function Teachers() {
                         onChange={(e) =>
                           setSelectedTeacher({
                             ...selectedTeacher,
-                            active: e.target.checked,
+                            active: e.target.checked ? 1 : 0,
                           })
                         }
                       />
@@ -325,9 +336,29 @@ export default function Teachers() {
               onClick={(e) => {
                 e.preventDefault();
                 const result = validate(selectedTeacher);
-                if (result === null)
-                  toast.success("Teacher saved successfully");
-                else toast.error(result);
+                if (result === null) {
+                  if (selectedTeacher.prev_initial === "") {
+                    createTeacher(selectedTeacher)
+                      .then((res) => {
+                        setTeachers([...teachers, selectedTeacher]);
+                        toast.success("Teacher added successfully");
+                      })
+                      .catch(console.log);
+                  } else {
+                    updateTeacher(selectedTeacher.prev_initial, selectedTeacher)
+                      .then((res) => {
+                        const index = teachers.findIndex(
+                          (t) => t.initial === selectedTeacher.prev_initial
+                        );
+                        const newTeachers = [...teachers];
+                        newTeachers[index] = selectedTeacher;
+                        setTeachers(newTeachers);
+                        toast.success("Teacher updated successfully");
+                      })
+                      .catch(console.log);
+                  }
+                  setSelectedTeacher(null);
+                } else toast.error(result);
               }}
             >
               Save
@@ -337,20 +368,42 @@ export default function Teachers() {
       )}
 
       <Modal
-        show={deleteTeacher !== null}
-        onHide={() => setDeleteTeacher(null)}
+        show={deleteTeacherSelected !== null}
+        onHide={() => setDeleteTeacherSelected(null)}
         size="md"
         centered
       >
-        <Modal.Header closeButton>Delete Teacher</Modal.Header>
+        <Modal.Header closeButton>
+          Delete Teacher: {deleteTeacherSelected}
+        </Modal.Header>
         <Modal.Body className="px-4">
           <p>Are you sure you want to delete this teacher?</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="outline-dark" onClick={() => setDeleteTeacher(null)}>
+          <Button
+            variant="outline-dark"
+            onClick={() => {
+              setDeleteTeacherSelected(null);
+            }}
+          >
             Close
           </Button>
-          <Button variant="danger">Delete</Button>
+          <Button
+            variant="danger"
+            onClick={(e) => {
+              deleteTeacher(deleteTeacherSelected)
+                .then((res) => {
+                  setDeleteTeacherSelected(null);
+                  setTeachers(
+                    teachers.filter((t) => t.initial !== deleteTeacherSelected)
+                  );
+                  toast.success("Teacher deleted successfully");
+                })
+                .catch(console.log);
+            }}
+          >
+            Delete
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>
