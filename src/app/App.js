@@ -10,7 +10,7 @@ import Footer from "./shared/Footer";
 import "./App.css";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import { FORBIDDEN, UNAUTHORIZED } from "./api";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 
 export const UserContext = createContext({user: undefined, setUser: u => {}});
 export const UserProvider = UserContext.Provider;
@@ -35,7 +35,7 @@ function App(props) {
         return Promise.reject(error);
       } else {
         const message = error.response.message || "Something went wrong...";
-        Toaster.error(message);
+        toast.error(message);
         return Promise.reject(error);
       }
     }
