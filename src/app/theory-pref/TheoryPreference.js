@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import { getStatus } from "../api/theory-assign";
+import { getStatus, initiate } from "../api/theory-assign";
 
 export default function TheoryPreference() {
   const [status, setStatus] = useState({ status: 0, values: [] });
@@ -41,7 +41,14 @@ export default function TheoryPreference() {
                 <button
                   disabled={status.status !== 0}
                   type="button"
-                  className="btn btn-rounded btn-light btn-sm float-right"
+                  className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3"
+                  onClick={e => {
+                    initiate().then(res => {
+                      getStatus().then((res) => {
+                        setStatus({ values: [], ...res });
+                      });
+                    })
+                  }}
                 >
                   <i
                     className={`mdi ${
@@ -120,7 +127,7 @@ export default function TheoryPreference() {
                 <button
                   disabled={status.status !== 3}
                   type="button"
-                  className="btn btn-rounded btn-light btn-sm float-right"
+                  className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3"
                 >
                   <i
                     className={`mdi ${
