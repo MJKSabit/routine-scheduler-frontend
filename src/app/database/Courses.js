@@ -17,7 +17,7 @@ const validateCourse = (course) => {
   if (course.batch === "") {
     return "Batch cannot be empty";
   }
-  if (course.sections.length === "") {
+  if (course.sections.length === 0) {
     return "Sections cannot be empty";
   }
   if (course.session === "") {
@@ -45,6 +45,7 @@ export default function Courses() {
   ];
 
   const [courses, setCourses] = useState(dummyCourses);
+  const [showModal, setShowModal] = useState(false);
 
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [deleteCourse, setDeleteCourse] = useState(null);
@@ -54,21 +55,23 @@ export default function Courses() {
     const checkboxValue = e.target.value;
     const isChecked = e.target.checked;
 
-    if (isChecked) {
-      setSelectedCheckboxes((prevSelected) => [...prevSelected, checkboxValue]);
-    } else {
-      setSelectedCheckboxes((prevSelected) =>
-        prevSelected.filter((item) => item !== checkboxValue)
-      );
-    }
+    setSelectedCheckboxes((prevSelected) => {
+      if (isChecked) {
+        return [...prevSelected, checkboxValue];
+      } else {
+        return prevSelected.filter(item => item !== checkboxValue);
+      }
+    });
 
-    setSelectedCourse((prevSelectedCourse) => ({
-        ...prevSelectedCourse,
-        sections: [...selectedCheckboxes, checkboxValue], // Use selectedCheckboxes here
-      }));
-
-    // console.log(selectedCheckboxes);
   };
+
+  useEffect(() => {
+    setSelectedCourse((prevSelectedCourse) => ({
+      ...prevSelectedCourse,
+      sections: selectedCheckboxes,
+    }));
+  }, [selectedCheckboxes]);
+
 
   return (
     <div>
@@ -96,6 +99,7 @@ export default function Courses() {
                   type="button"
                   className="btn btn-success btn-sm"
                   onClick={(e) => {
+                    setShowModal(true);
                     setSelectedCourse({
                       course_id: "",
                       course_name: "",
@@ -143,8 +147,9 @@ export default function Courses() {
                               type="button"
                               className="btn btn-primary btn-sm"
                               onClick={() =>
-                                setSelectedCourse({ ...course, index })
-                              }
+                                {
+                                  setSelectedCourse({ ...course, index }); setShowModal(true);
+                              }}
                             >
                               Edit
                             </button>
@@ -166,7 +171,7 @@ export default function Courses() {
           </div>
         </div>
       </div>
-      {selectedCourse !== null && (
+      {showModal && selectedCourse !== null && (
         <Modal
           show={true}
           onHide={() => setSelectedCourse(null)}
@@ -299,7 +304,7 @@ export default function Courses() {
                           type="checkbox"
                           className="form-check-input"
                           value="A"
-                        //   checked={selectedCheckboxes.includes("A")}
+                          checked={selectedCheckboxes.includes("A") || selectedCourse.sections.includes("A")}
                           onChange={handleCheckboxChange}
                         />
                         <label className="form-check-label">A</label>
@@ -310,7 +315,7 @@ export default function Courses() {
                           type="checkbox"
                           className="form-check-input"
                           value="B"
-                        //   checked={selectedCourse.sections.includes("B")}
+                          checked={selectedCheckboxes.includes("B") || selectedCourse.sections.includes("B")}
                           onChange={handleCheckboxChange}
                         />
                         <label className="form-check-label">B</label>
@@ -321,7 +326,7 @@ export default function Courses() {
                           type="checkbox"
                           className="form-check-input"
                           value="C"
-                        //   checked={selectedCourse.sections.includes("C")}
+                          checked={selectedCheckboxes.includes("C") || selectedCourse.sections.includes("C")}
                           onChange={handleCheckboxChange}
                         />
                         <label className="form-check-label">C</label>
@@ -332,6 +337,7 @@ export default function Courses() {
                           type="checkbox"
                           className="form-check-input"
                           value="All"
+                          checked={selectedCheckboxes.includes("All") || selectedCourse.sections.includes("All")}
                           onChange={handleCheckboxChange}
                         />
                         <label className="form-check-label">All</label>
@@ -354,18 +360,16 @@ export default function Courses() {
               onClick={(e) => {
                 e.preventDefault();
 
-                console.log(selectedCheckboxes);
-                // setSelectedCourse((prevSelectedCourse) => ({
-                //     ...prevSelectedCourse,
-                //     sections: selectedCheckboxes,
-                //   }));
-                // console.log(selectedCourse);
+                // console.log(selectedCheckboxes,"first");
+                
                 const result = validateCourse(selectedCourse);
                 if (result === null) {
                   toast.success("Course saved successfully");
                   console.log(selectedCourse);
-                    
+
                   setCourses((prevCourses) => [...prevCourses, selectedCourse]);
+                  setSelectedCheckboxes([]);
+                  // console.log(selectedCheckboxes,"last");
                 } else toast.error(result);
               }}
             >
