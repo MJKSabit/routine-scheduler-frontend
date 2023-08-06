@@ -35,7 +35,9 @@ const validateSection = (section) => {
 };
 
 export default function Sections() {
-  const [sections, setSections] = useState([
+  const sessionValue = ["January 2023", "June 2023"]; // it will be fetched from database
+
+  const dummySections = [
     {
       batch: 18,
       section: "A",
@@ -43,7 +45,9 @@ export default function Sections() {
       room: "203",
       session: "January 2023",
     },
-  ]);
+  ];
+
+  const [sections, setSections] = useState(dummySections);
 
   // type 0 = theory, 1 = lab
 
@@ -79,9 +83,9 @@ export default function Sections() {
                     setSelectedSection({
                       batch: 0,
                       section: "",
-                      type: "",
+                      type: "Theory",
                       room: "",
-                      session: "",
+                      session: sessionValue[0],
                     });
                   }}
                 >
@@ -206,7 +210,7 @@ export default function Sections() {
                     <Form.Label>Type</Form.Label>
                     <br />
                     <Form.Select
-                      
+                      size="lg"
                       value={selectedSection.type === "Theory" ? "0" : "1"}
                       onChange={(e) =>
                         setSelectedSection({
@@ -227,17 +231,17 @@ export default function Sections() {
                     <br />
                     <Form.Select
                       size="lg"
-                      value={selectedSection.session === "January 2023" ? "0" : "1"}
+                      value={sessionValue.indexOf(selectedSection.session)}
                       onChange={(e) =>
                         setSelectedSection({
                           ...selectedSection,
-                          session: e.target.value === "0" ? "January 2023" : "July 2023",
+                          session: sessionValue[Number.parseInt(e.target.value)],
                         })
                       }
                     >
                     
-                      <option value="0">January 2023</option>
-                      <option value="1">July 2023</option>
+                      <option value="0">{sessionValue[0]}</option>
+                      <option value="1">{sessionValue[1]}</option>
                     </Form.Select>
                   </FormGroup>
                 </Col>
@@ -260,6 +264,7 @@ export default function Sections() {
                 {
                     toast.success("Section saved successfully");
                     console.log(selectedSection);
+                    setSections((prevSections) => [...prevSections, selectedSection]);
                 }
                 else toast.error(result);
               }}
