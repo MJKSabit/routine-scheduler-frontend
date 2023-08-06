@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState , useEffect } from "react";
 import { Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 
 import { toast } from "react-hot-toast";
+
+import { createRoom, deleteRoom, getRooms, updateRoom } from "../api/db-crud";
 
 const validateRoom = (room) => {
   if (room.room === "") {
@@ -15,15 +17,16 @@ const validateRoom = (room) => {
 };
 
 export default function Rooms() {
-  const [rooms, setRooms] = useState([
-    {
-      room: "203",
-      type: "Theory",
-    },
-  ]);
+  const [rooms, setRooms] = useState([]);
+
+  useEffect(() => {
+    getRooms().then((res) => {
+      setRooms(res);
+    });
+  }, []);
 
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [deleteRoom, setDeleteRoom] = useState(null);
+  const [deleteRoomSelected, setDeleteRoomSelected] = useState(null);
 
   return (
     <div>
@@ -53,7 +56,8 @@ export default function Rooms() {
                   onClick={(e) => {
                     setSelectedRoom({
                       room: "",
-                      type: "",
+                      type: "Theory",
+                      prev_room: "",
                     });
                   }}
                 >
@@ -72,7 +76,7 @@ export default function Rooms() {
                     {rooms.map((room, index) => (
                       <tr key={index}>
                         <td> {room.room} </td>
-                        <td> {room.type} </td>
+                        <td> {room.type===0? "Theory":"Sessional"} </td>
                         <td>
                           <div
                             className="btn-group"
@@ -83,7 +87,11 @@ export default function Rooms() {
                               type="button"
                               className="btn btn-primary btn-sm"
                               onClick={() =>
-                                setSelectedRoom({ ...room, index })
+                                setSelectedRoom({
+                                  ...room,
+                                  index,
+                                  prev_room: room.room,
+                                })
                               }
                             >
                               Edit
@@ -91,7 +99,7 @@ export default function Rooms() {
                             <button
                               type="button"
                               className="btn btn-danger btn-sm"
-                              onClick={() => setDeleteRoom(index)}
+                              onClick={() => setDeleteRoomSelected(room.room)}
                             >
                               Delete
                             </button>
@@ -139,11 +147,11 @@ export default function Rooms() {
                     <br />
                     <Form.Select
                       size="lg"
-                      value={selectedRoom.type === "Theory" ? "0" : "1"}
+                      value={selectedRoom.type}
                       onChange={(e) =>
                         setSelectedRoom({
                           ...selectedRoom,
-                          type: e.target.value === "0" ? "Theory" : "Sessional",
+                          type: e.target.value,
                         })
                       }
                     >
@@ -168,8 +176,27 @@ export default function Rooms() {
                 e.preventDefault();
                 const result = validateRoom(selectedRoom);
                 if (result === null) {
-                  toast.success("Room saved successfully");
-                  console.log(selectedRoom);
+                  if (selectedRoom.prev_room === "") {
+                    createRoom(selectedRoom)
+                      .then((res) => {
+                        setRooms([...rooms, selectedRoom]);
+                        toast.success("Room added successfully");
+                      })
+                      .catch(console.log);
+                  } else {
+                    updateRoom(selectedRoom.prev_room, selectedRoom)
+                      .then((res) => {
+                        const index = rooms.findIndex(
+                          (r) => r.room === selectedRoom.prev_room
+                        );
+                        const newRooms = [...rooms];
+                        newRooms[index] = selectedRoom;
+                        setRooms(newRooms);
+                        toast.success("Room updated successfully");
+                      })
+                      .catch(console.log);
+                  }
+                  setSelectedRoom(null);
                 } else toast.error(result);
               }}
             >
@@ -180,8 +207,8 @@ export default function Rooms() {
       )}
 
       <Modal
-        show={deleteRoom !== null}
-        onHide={() => setDeleteRoom(null)}
+        show={deleteRoomSelected !== null}
+        onHide={() => setDeleteRoomSelected(null)}
         size="md"
         centered
       >
@@ -190,10 +217,26 @@ export default function Rooms() {
           <p>Are you sure you want to delete this room?</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="outline-dark" onClick={() => setDeleteRoom(null)}>
+          <Button
+            variant="outline-dark"
+            onClick={() => setDeleteRoomSelected(null)}
+          >
             Close
           </Button>
-          <Button variant="danger">Delete</Button>
+          <Button
+            variant="danger"
+            onClick={(e) => {
+              deleteRoom(deleteRoomSelected)
+                .then((res) => {
+                  setDeleteRoomSelected(null);
+                  setRooms(rooms.filter((r) => r.room !== deleteRoomSelected));
+                  toast.success("Room deleted successfully");
+                })
+                .catch(console.log);
+            }}
+          >
+            Delete
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>

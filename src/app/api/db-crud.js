@@ -11,3 +11,15 @@ export const updateTeacher = (initial, teacher) =>
   axios.put(api_url(`/teacher/${initial}`), teacher).then((res) => res.data);
 export const deleteTeacher = (initial) =>
   axios.delete(api_url(`/teacher/${initial}`)).then((res) => res.data);
+
+export const getRooms = () =>
+  axios.get(api_url("/room")).then((res) => res.data);
+export const getRoom = (room) =>
+  axios.get(api_url(`/room/${room}`)).then((res) => res.data);
+export const createRoom = (room) =>
+  axios.post(api_url("/room"), room).then((res) => res.data);
+export const updateRoom = (room, newRoom) =>
+  axios.put(api_url(`/room/${room}`), newRoom).then((res) => res.data);
+export const deleteRoom = (room) =>
+  axios.delete(api_url(`/room/${room}`)).then((res) => res.data);
+
