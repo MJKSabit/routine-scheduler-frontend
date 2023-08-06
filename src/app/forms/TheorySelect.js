@@ -1,4 +1,3 @@
-import { set } from "date-fns";
 import { useRef } from "react";
 import { useState } from "react";
 import { Button } from "react-bootstrap";
@@ -139,7 +138,9 @@ export default function TheorySelect() {
                           );
                           setSelectedCourse([
                             ...selectedOptions,
-                            ...selectedCourse.filter((course) => !selectedOptions.includes(course))
+                            ...selectedCourse.filter(
+                              (course) => !selectedOptions.includes(course)
+                            ),
                           ]);
                           selectedCourseRef.current.selectedIndex = -1;
                         }}
@@ -153,16 +154,17 @@ export default function TheorySelect() {
                         onClick={(e) => {
                           const selectedOptions = Array.from(
                             selectedCourseRef.current.selectedOptions
-                          )
-                            .map((option) => option.value);
+                          ).map((option) => option.value);
                           const reorderedCourses = [...selectedCourse];
                           for (let i = 0; i < selectedOptions.length; i++) {
                             const index = reorderedCourses.findIndex(
-                              (course) => course.course_id === selectedOptions[i]
+                              (course) =>
+                                course.course_id === selectedOptions[i]
                             );
                             if (index === 0) continue;
                             const temp = reorderedCourses[index];
-                            reorderedCourses[index] = reorderedCourses[index - 1];
+                            reorderedCourses[index] =
+                              reorderedCourses[index - 1];
                             reorderedCourses[index - 1] = temp;
                           }
                           setSelectedCourse(reorderedCourses);
@@ -181,16 +183,21 @@ export default function TheorySelect() {
                         onClick={(e) => {
                           const selectedOptions = Array.from(
                             selectedCourseRef.current.selectedOptions
-                          )
-                            .map((option) => option.value);
+                          ).map((option) => option.value);
                           const reorderedCourses = [...selectedCourse];
-                          for (let i = selectedOptions.length - 1; i >= 0; i--) {
+                          for (
+                            let i = selectedOptions.length - 1;
+                            i >= 0;
+                            i--
+                          ) {
                             const index = reorderedCourses.findIndex(
-                              (course) => course.course_id === selectedOptions[i]
+                              (course) =>
+                                course.course_id === selectedOptions[i]
                             );
                             if (index === reorderedCourses.length - 1) continue;
                             const temp = reorderedCourses[index];
-                            reorderedCourses[index] = reorderedCourses[index + 1];
+                            reorderedCourses[index] =
+                              reorderedCourses[index + 1];
                             reorderedCourses[index + 1] = temp;
                           }
                           setSelectedCourse(reorderedCourses);
@@ -209,17 +216,19 @@ export default function TheorySelect() {
                         onClick={(e) => {
                           const selectedOptions = Array.from(
                             selectedCourseRef.current.selectedOptions
-                          )
-                            .map((option) => option.value);
+                          ).map((option) => option.value);
                           const reorderedCourses = [...selectedCourse];
                           for (let i = 0; i < selectedOptions.length; i++) {
                             const index = reorderedCourses.findIndex(
-                              (course) => course.course_id === selectedOptions[i]
+                              (course) =>
+                                course.course_id === selectedOptions[i]
                             );
                             if (index === reorderedCourses.length - 1) continue;
                             const temp = reorderedCourses[index];
-                            reorderedCourses[index] = reorderedCourses[reorderedCourses.length - 1];
-                            reorderedCourses[reorderedCourses.length - 1] = temp;
+                            reorderedCourses[index] =
+                              reorderedCourses[reorderedCourses.length - 1];
+                            reorderedCourses[reorderedCourses.length - 1] =
+                              temp;
                           }
                           setSelectedCourse(reorderedCourses);
                           selectedCourseRef.current.selectedIndex = Math.min(
@@ -250,14 +259,18 @@ export default function TheorySelect() {
                   </div>
                 </div>
                 <div className="mt-3 pb-5">
-                  <Button className="btn btn-primary btn-lg font-weight-medium auth-form-btn float-right" onClick={e => {
-                    e.preventDefault();
-                    if (offeredCourse.length !== 0) {
-                      toast.error("Please move all courses to your preference list before submitting");
-                    } else {
-                      
-                    }
-                  }}>
+                  <Button
+                    className="btn btn-primary btn-lg font-weight-medium auth-form-btn float-right"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (offeredCourse.length !== 0) {
+                        toast.error(
+                          "Please move all courses to your preference list before submitting"
+                        );
+                      } else {
+                      }
+                    }}
+                  >
                     SUBMIT
                   </Button>
                 </div>
