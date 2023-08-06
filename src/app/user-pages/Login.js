@@ -3,9 +3,13 @@ import { Link } from "react-router-dom";
 import { Button, Form } from "react-bootstrap";
 import { useContext } from "react";
 import { UserContext } from "../App";
+import { login } from "../api/auth";
 
 export default function Login() {
   const { setUser } = useContext(UserContext);
+  const username = React.useRef();
+  const password = React.useRef();
+
   return (
     <div>
       <div className="d-flex align-items-center auth px-0">
@@ -23,10 +27,11 @@ export default function Login() {
               <Form className="pt-3">
                 <Form.Group className="d-flex search-field">
                   <Form.Control
-                    type="email"
+                    type="text"
                     placeholder="Username"
                     size="lg"
                     className="h-auto"
+                    ref={username}
                   />
                 </Form.Group>
                 <Form.Group className="d-flex search-field">
@@ -35,14 +40,22 @@ export default function Login() {
                     placeholder="Password"
                     size="lg"
                     className="h-auto"
+                    ref={password}
                   />
                 </Form.Group>
                 <div className="mt-3">
                   <Button
                     className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn"
                     onClick={() => {
-                      setUser({ loggedIn: true });
-                      localStorage.setItem('token', 'token-jwt');
+                      const usernameValue = username.current.value;
+                      const passwordValue = password.current.value;
+                      login(usernameValue, passwordValue)
+                      .then((res) => {
+                        localStorage.setItem('token', res.token);
+                        setUser({ loggedIn: true, user: res.user});
+                      })
+                      .catch(console.log);
+                        
                     }}
                   >
                     SIGN IN
