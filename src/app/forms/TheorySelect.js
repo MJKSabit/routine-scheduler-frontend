@@ -1,13 +1,18 @@
+import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 import { Button } from "react-bootstrap";
 import { toast } from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import { getTheoryPreferencesForm, submitTheoryPreferencesForm } from "../api/form";
 
 export default function TheorySelect() {
   const { id } = useParams();
-  console.log(id);
 
+  const [teacher, setTeacher] = useState({
+    initial: "...",
+    name: "Loading...",
+  });
   const [offeredCourse, setOfferedCourse] = useState([
     { course_id: "CSE 101", name: "Introduction to Computer Science" },
     { course_id: "CSE 102", name: "Introduction to Programming" },
@@ -20,6 +25,14 @@ export default function TheorySelect() {
 
   const offeredCourseRef = useRef();
   const selectedCourseRef = useRef();
+
+  useEffect(() => {
+    getTheoryPreferencesForm(id).then((form) => {
+      setTeacher(form.teachers);
+      setOfferedCourse(form.courses);
+      setSelectedCourse([])
+    });
+  }, [id]);
 
   return (
     <div>
@@ -34,7 +47,9 @@ export default function TheorySelect() {
                 />
               </div>
               <h4>Theory Course Preference</h4>
-              <h6 className="font-weight-light">Form Id: {id}</h6>
+              <h6 className="font-weight-light">
+                {teacher.name} ({teacher.initial})
+              </h6>
               <form>
                 <div className="row">
                   <div className="col-5" style={{ padding: 10 }}>
@@ -268,6 +283,13 @@ export default function TheorySelect() {
                           "Please move all courses to your preference list before submitting"
                         );
                       } else {
+                        const preferences = selectedCourse.map(
+                          (course) => course.course_id
+                        );
+                        submitTheoryPreferencesForm(id, { preferences })
+                        .then((res) => {
+                          toast.success("Preferences saved successfully");
+                        }).catch(console.log)
                       }
                     }}
                   >
