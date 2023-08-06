@@ -151,7 +151,7 @@ export default function Rooms() {
                       onChange={(e) =>
                         setSelectedRoom({
                           ...selectedRoom,
-                          type: e.target.value,
+                          type: Number.parseInt(e.target.value),
                         })
                       }
                     >
