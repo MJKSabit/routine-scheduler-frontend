@@ -56,7 +56,7 @@ export default function Rooms() {
                   onClick={(e) => {
                     setSelectedRoom({
                       room: "",
-                      type: "Theory",
+                      type: 0,
                       prev_room: "",
                     });
                   }}
