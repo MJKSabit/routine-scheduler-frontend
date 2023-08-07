@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 
 import { toast } from "react-hot-toast";
+import {
+  createSection,
+  deleteSection,
+  getSections,
+  updateSection,
+} from "../api/db-crud";
 
 const regexSection = /^[A-C][1-3]?$/;
 
@@ -35,24 +41,34 @@ const validateSection = (section) => {
 };
 
 export default function Sections() {
-  const sessionValue = ["January 2023", "June 2023"]; // it will be fetched from database
+  const sessionValue = ["Jan-23"]; // it will be fetched from database
 
-  const dummySections = [
-    {
-      batch: 18,
-      section: "A",
-      type: "Theory",
-      room: "203",
-      session: "January 2023",
-    },
-  ];
+  // const dummySections = [
+  //   {
+  //     batch: 18,
+  //     section: "A",
+  //     type: "Theory",
+  //     room: "203",
+  //     session: "January 2023",
+  //   },
+  // ];
 
-  const [sections, setSections] = useState(dummySections);
+  const [sections, setSections] = useState([]);
+
+  useEffect(() => {
+    getSections().then((res) => {
+      setSections(res);
+    });
+  }, []);
+
+
 
   // type 0 = theory, 1 = lab
 
   const [selectedSection, setSelectedSection] = useState(null);
-  const [deleteSection, setDeleteSection] = useState(null);
+  const [deleteSectionSelected, setDeleteSectionSelected] = useState(null);
+
+  console.log(deleteSectionSelected);
 
   return (
     <div>
@@ -83,9 +99,11 @@ export default function Sections() {
                     setSelectedSection({
                       batch: 0,
                       section: "",
-                      type: "Theory",
+                      type: 0,
                       room: "",
                       session: sessionValue[0],
+                      prev_batch: 0,
+                      prev_section: "",
                     });
                   }}
                 >
@@ -108,7 +126,7 @@ export default function Sections() {
                       <tr key={index}>
                         <td> {section.batch} </td>
                         <td> {section.section} </td>
-                        <td> {section.type} </td>
+                        <td> {section.type===0? "Theory":"Sessional"} </td>
                         <td> {section.room} </td>
                         <td> {section.session} </td>
                         <td>
@@ -121,7 +139,12 @@ export default function Sections() {
                               type="button"
                               className="btn btn-primary btn-sm"
                               onClick={() =>
-                                setSelectedSection({ ...section, index })
+                                setSelectedSection({
+                                  ...section,
+                                  index,
+                                  prev_batch: section.batch,
+                                  prev_section: section.section,
+                                })
                               }
                             >
                               Edit
@@ -129,7 +152,12 @@ export default function Sections() {
                             <button
                               type="button"
                               className="btn btn-danger btn-sm"
-                              onClick={() => setDeleteSection(index)}
+                              onClick={() =>
+                                setDeleteSectionSelected({
+                                  batch: section.batch,
+                                  section: section.section,
+                                })
+                              }
                             >
                               Delete
                             </button>
@@ -151,7 +179,9 @@ export default function Sections() {
           size="md"
           centered
         >
-          <Modal.Header closeButton>Add / Edit Section</Modal.Header>
+          <Modal.Header closeButton>
+            {selectedSection.prev_section === "" ? "Add" : "Edit"} Section
+          </Modal.Header>
           <Modal.Body className="px-4">
             <Form className="px-2 py-1">
               <Row>
@@ -211,11 +241,11 @@ export default function Sections() {
                     <br />
                     <Form.Select
                       size="lg"
-                      value={selectedSection.type === "Theory" ? "0" : "1"}
+                      value={selectedSection.type}
                       onChange={(e) =>
                         setSelectedSection({
                           ...selectedSection,
-                          type: e.target.value === "0" ? "Theory" : "Sessional",
+                          type: Number.parseInt(e.target.value),
                         })
                       }
                     >
@@ -224,8 +254,8 @@ export default function Sections() {
                     </Form.Select>
                   </FormGroup>
                 </Col>
-                
-                <Col md={4} className="px-2 py-1 d-flex align-items-center" >
+
+                <Col md={4} className="px-2 py-1 d-flex align-items-center">
                   <FormGroup>
                     <Form.Label>Session</Form.Label>
                     <br />
@@ -235,13 +265,12 @@ export default function Sections() {
                       onChange={(e) =>
                         setSelectedSection({
                           ...selectedSection,
-                          session: sessionValue[Number.parseInt(e.target.value)],
+                          session:
+                            sessionValue[Number.parseInt(e.target.value)],
                         })
                       }
                     >
-                    
                       <option value="0">{sessionValue[0]}</option>
-                      <option value="1">{sessionValue[1]}</option>
                     </Form.Select>
                   </FormGroup>
                 </Col>
@@ -260,13 +289,35 @@ export default function Sections() {
               onClick={(e) => {
                 e.preventDefault();
                 const result = validateSection(selectedSection);
-                if (result === null)
-                {
-                    toast.success("Section saved successfully");
-                    console.log(selectedSection);
-                    setSections((prevSections) => [...prevSections, selectedSection]);
-                }
-                else toast.error(result);
+                if (result === null) {
+                  if (selectedSection.prev_section === "") {
+                    createSection({...selectedSection, room: selectedSection.room || "000"})
+                      .then((res) => {
+                        setSections([...sections, selectedSection]);
+                        toast.success("Section added successfully");
+                      })
+                      .catch(console.log);
+                  } else {
+                    updateSection(
+                      selectedSection.prev_batch,
+                      selectedSection.prev_section,
+                      selectedSection
+                    )
+                      .then((res) => {
+                        const index = sections.findIndex(
+                          (t) =>
+                            t.batch === selectedSection.prev_batch &&
+                            t.section === selectedSection.prev_section
+                        );
+                        const newSections = [...sections];
+                        newSections[index] = selectedSection;
+                        setSections(newSections);
+                        toast.success("Section updated successfully");
+                      })
+                      .catch(console.log);
+                  }
+                  setSelectedSection(null);
+                } else toast.error(result);
               }}
             >
               Save
@@ -275,23 +326,48 @@ export default function Sections() {
         </Modal>
       )}
 
+      {deleteSectionSelected !== null && (
       <Modal
-        show={deleteSection !== null}
-        onHide={() => setDeleteSection(null)}
+        show={deleteSectionSelected !== null}
+        onHide={() => setDeleteSectionSelected(null)}
         size="md"
         centered
       >
-        <Modal.Header closeButton>Delete Section</Modal.Header>
+        <Modal.Header closeButton>
+          Delete Section : {deleteSectionSelected.batch}{deleteSectionSelected.section}
+        </Modal.Header>
         <Modal.Body className="px-4">
           <p>Are you sure you want to delete this section?</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="outline-dark" onClick={() => setDeleteSection(null)}>
+          <Button
+            variant="outline-dark"
+            onClick={() => setDeleteSectionSelected(null)}
+          >
             Close
           </Button>
-          <Button variant="danger">Delete</Button>
+          <Button
+            variant="danger"
+            onClick={(e) => {
+              deleteSection(deleteSectionSelected.batch, deleteSectionSelected.section)
+                .then((res) => {
+                  setDeleteSectionSelected(null);
+                  setSections(
+                    sections.filter(
+                      (t) =>
+                        t.batch !== deleteSectionSelected.batch &&
+                        t.section !== deleteSectionSelected.section
+                    )
+                  );
+                  toast.success("Section deleted successfully");
+                })
+                .catch(console.log);
+            }}
+          >
+            Delete
+          </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal>)}
     </div>
   );
 }
