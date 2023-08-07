@@ -105,7 +105,7 @@ export default function TheoryPreference() {
               {status.values.length === 0 && status.status >= 2 && (
                 <Alert variant="success text-center">All submitted, waiting for next phase</Alert>
               )}
-              {status.values.length === 0 && status.status == 0 && (
+              {status.values.length === 0 && status.status === 0 && (
                 <Alert variant="warning text-center">Initialize the process to send email</Alert>
               )}
             </div>

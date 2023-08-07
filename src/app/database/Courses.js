@@ -3,7 +3,7 @@ import { Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 
 import { toast } from "react-hot-toast";
-import { getCourses, getSections } from "../api/db-crud";
+import { addCourse, deleteCourse, editCourse, getCourses, getSections } from "../api/db-crud";
 
 const validateCourse = (course) => {
   if (course.course_id === "") {
@@ -35,10 +35,9 @@ export default function Courses() {
 
   const [sections, setSections] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [showModal, setShowModal] = useState(false);
 
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [deleteCourse, setDeleteCourse] = useState(null);
+  const [deleteCourseSelected, setDeleteCourseSelected] = useState(null);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);
 
   const handleCheckboxChange = (e) => {
@@ -64,10 +63,12 @@ export default function Courses() {
   }, []);
 
   useEffect(() => {
-    setSelectedCourse((prevSelectedCourse) => ({
-      ...prevSelectedCourse,
-      sections: selectedCheckboxes,
-    }));
+    if (selectedCourse) {
+      setSelectedCourse((prevSelectedCourse) => ({
+        ...prevSelectedCourse,
+        sections: selectedCheckboxes,
+      }));
+    }
   }, [selectedCheckboxes]);
 
   useEffect(() => {
@@ -102,7 +103,6 @@ export default function Courses() {
                   type="button"
                   className="btn btn-success btn-sm"
                   onClick={(e) => {
-                    setShowModal(true);
                     setSelectedCourse({
                       course_id: "",
                       name: "",
@@ -151,7 +151,6 @@ export default function Courses() {
                               className="btn btn-primary btn-sm"
                               onClick={() => {
                                 setSelectedCourse({ ...course, index, prev_course_id: course.course_id, prev_session: course.session });
-                                setShowModal(true);
                               }}
                             >
                               Edit
@@ -159,7 +158,7 @@ export default function Courses() {
                             <button
                               type="button"
                               className="btn btn-danger btn-sm"
-                              onClick={() => setDeleteCourse(index)}
+                              onClick={() => setDeleteCourseSelected(course)}
                             >
                               Delete
                             </button>
@@ -174,7 +173,7 @@ export default function Courses() {
           </div>
         </div>
       </div>
-      {showModal && selectedCourse !== null && (
+      {selectedCourse !== null && (
         <Modal
           show={true}
           onHide={() => setSelectedCourse(null)}
@@ -238,23 +237,6 @@ export default function Courses() {
                   </FormGroup>
                 </Col>
 
-                <Col className="px-2 py-1">
-                  <FormGroup>
-                    <Form.Label>Batch</Form.Label>
-                    <FormControl
-                      type="text"
-                      placeholder="Enter Batch"
-                      value={selectedCourse.batch}
-                      onChange={(e) =>
-                        setSelectedCourse({
-                          ...selectedCourse,
-                          batch: Number.parseInt(e.target.value || "0"),
-                        })
-                      }
-                    />
-                  </FormGroup>
-                </Col>
-
                 <Col md={4} className="px-2 py-1 d-flex align-items-center">
                   <FormGroup>
                     <Form.Label>Type</Form.Label>
@@ -274,6 +256,23 @@ export default function Courses() {
                     </Form.Select>
                   </FormGroup>
                 </Col>
+                <Col className="px-2 py-1">
+                  <FormGroup>
+                    <Form.Label>Batch</Form.Label>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Batch"
+                      value={selectedCourse.batch}
+                      onChange={(e) =>
+                        setSelectedCourse({
+                          ...selectedCourse,
+                          batch: Number.parseInt(e.target.value || "0"),
+                        })
+                      }
+                    />
+                  </FormGroup>
+                </Col>
+
               </Row>
               <Row>
                 <Col md={4} className="px-2 py-1 d-flex align-items-center">
@@ -342,6 +341,23 @@ export default function Courses() {
                 console.log(selectedCourse.sections);
                 const result = validateCourse(selectedCourse);
                 if (result === null) {
+
+                  if (selectedCourse.prev_course_id) {
+                    editCourse(selectedCourse.prev_course_id, selectedCourse).then((res) => {
+                      toast.success("Course updated successfully");
+                      setCourses((prevCourses) => prevCourses.map(c => c.course_id === selectedCourse.prev_course_id ? selectedCourse : c));
+                      setSelectedCourse(null);
+                      setSelectedCheckboxes([]);
+                    });
+                  } else {
+                    addCourse(selectedCourse).then((res) => {
+                      toast.success("Course added successfully");
+                      setCourses((prevCourses) => [...prevCourses, res]);
+                      setSelectedCourse(null);
+                      setSelectedCheckboxes([]);
+                    });
+                  }
+
                   toast.success("Course saved successfully");
                   console.log(selectedCourse);
 
@@ -358,8 +374,8 @@ export default function Courses() {
       )}
 
       <Modal
-        show={deleteCourse !== null}
-        onHide={() => setDeleteCourse(null)}
+        show={deleteCourseSelected !== null}
+        onHide={() => setDeleteCourseSelected(null)}
         size="md"
         centered
       >
@@ -368,10 +384,16 @@ export default function Courses() {
           <p>Are you sure you want to delete this course?</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="outline-dark" onClick={() => setDeleteCourse(null)}>
+          <Button variant="outline-dark" onClick={() => setDeleteCourseSelected(null)}>
             Close
           </Button>
-          <Button variant="danger">Delete</Button>
+          <Button variant="danger" onClick={e => {
+            deleteCourse(deleteCourseSelected.course_id).then(res => {
+              toast.success("Course deleted successfully");
+              setCourses(prevCourses => prevCourses.filter(c => c.course_id !== deleteCourseSelected.course_id));
+              setDeleteCourseSelected(null);
+            })
+          }}>Delete</Button>
         </Modal.Footer>
       </Modal>
     </div>
