@@ -38,3 +38,16 @@ export const updateRoom = (room, newRoom) =>
 export const deleteRoom = (room) =>
   axios.delete(api_url(`/room/${room}`)).then((res) => res.data);
 
+export const getSections = () =>
+  axios.get(api_url("/section")).then((res) => res.data);
+export const getSection = (batch,section) =>
+  axios.get(api_url(`/section/${batch}/${section}`)).then((res) => res.data);
+export const createSection = (section) =>
+  axios.post(api_url("/section"), section).then((res) => res.data);
+export const updateSection = (batch,section, newSection) =>
+  axios.put(api_url(`/section/${batch}/${section}`), newSection).then((res) => res.data);
+export const deleteSection = (batch,section) =>
+  axios.delete(api_url(`/section/${batch}/${section}`)).then((res) => res.data);
+ 
+
+
