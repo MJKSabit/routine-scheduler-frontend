@@ -12,6 +12,12 @@ export const updateTeacher = (initial, teacher) =>
 export const deleteTeacher = (initial) =>
   axios.delete(api_url(`/teacher/${initial}`)).then((res) => res.data);
 
+export const getCourses = () =>
+    axios.get(api_url("/course")).then((res) => res.data);
+
+export const getSections = () =>
+    axios.get(api_url("/section")).then((res) => res.data);
+
 export const getRooms = () =>
   axios.get(api_url("/room")).then((res) => res.data);
 export const getRoom = (room) =>

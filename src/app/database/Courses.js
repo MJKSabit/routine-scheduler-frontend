@@ -3,12 +3,13 @@ import { Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 
 import { toast } from "react-hot-toast";
+import { getCourses, getSections } from "../api/db-crud";
 
 const validateCourse = (course) => {
   if (course.course_id === "") {
     return "Course ID cannot be empty";
   }
-  if (course.course_name === "") {
+  if (course.name === "") {
     return "Course Name cannot be empty";
   }
   if (course.type === "") {
@@ -30,21 +31,10 @@ const validateCourse = (course) => {
 };
 
 export default function Courses() {
-  const sessionValue = ["January 2023", "June 2023"]; // it will be fetched from database
+  const sessionValue = ["Jan-23"]; // it will be fetched from database
 
-  const dummyCourses = [
-    {
-      course_id: "CSE 423",
-      course_name: "Fault Tolerant Systems",
-      type: "Theory",
-      batch: 18,
-      sections: ["A", "B"],
-      session: "January 2023",
-      class_per_week: 3,
-    },
-  ];
-
-  const [courses, setCourses] = useState(dummyCourses);
+  const [sections, setSections] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -59,11 +49,19 @@ export default function Courses() {
       if (isChecked) {
         return [...prevSelected, checkboxValue];
       } else {
-        return prevSelected.filter(item => item !== checkboxValue);
+        return prevSelected.filter((item) => item !== checkboxValue);
       }
     });
-
   };
+
+  useEffect(() => {
+    getCourses().then((res) => {
+      setCourses(res);
+    });
+    getSections().then((res) => {
+      setSections(res);
+    });
+  }, []);
 
   useEffect(() => {
     setSelectedCourse((prevSelectedCourse) => ({
@@ -72,6 +70,11 @@ export default function Courses() {
     }));
   }, [selectedCheckboxes]);
 
+  useEffect(() => {
+    if (selectedCourse) {
+      setSelectedCheckboxes(selectedCourse.sections);
+    }
+  }, [selectedCourse])
 
   return (
     <div>
@@ -102,7 +105,7 @@ export default function Courses() {
                     setShowModal(true);
                     setSelectedCourse({
                       course_id: "",
-                      course_name: "",
+                      name: "",
                       type: "Theory",
                       batch: 0,
                       sections: [],
@@ -131,7 +134,7 @@ export default function Courses() {
                     {courses.map((course, index) => (
                       <tr key={index}>
                         <td> {course.course_id} </td>
-                        <td> {course.course_name} </td>
+                        <td> {course.name} </td>
                         <td> {course.type} </td>
                         <td> {course.batch} </td>
                         <td> {course.sections.join(", ")} </td>
@@ -146,9 +149,9 @@ export default function Courses() {
                             <button
                               type="button"
                               className="btn btn-primary btn-sm"
-                              onClick={() =>
-                                {
-                                  setSelectedCourse({ ...course, index }); setShowModal(true);
+                              onClick={() => {
+                                setSelectedCourse({ ...course, index, prev_course_id: course.course_id, prev_session: course.session });
+                                setShowModal(true);
                               }}
                             >
                               Edit
@@ -178,7 +181,7 @@ export default function Courses() {
           size="md"
           centered
         >
-          <Modal.Header closeButton>Add / Edit Course</Modal.Header>
+          <Modal.Header closeButton> {selectedCourse.prev_course_id ? "Edit" : "Add"} Course</Modal.Header>
           <Modal.Body className="px-4">
             <Form className="px-2 py-1">
               <Row>
@@ -204,11 +207,11 @@ export default function Courses() {
                     <FormControl
                       type="text"
                       placeholder="Enter Course Name"
-                      value={selectedCourse.course_name}
+                      value={selectedCourse.name}
                       onChange={(e) =>
                         setSelectedCourse({
                           ...selectedCourse,
-                          course_name: e.target.value,
+                          name: e.target.value,
                         })
                       }
                     />
@@ -258,11 +261,11 @@ export default function Courses() {
                     <br />
                     <Form.Select
                       size="lg"
-                      value={selectedCourse.type === "Theory" ? "0" : "1"}
+                      value={selectedCourse.type}
                       onChange={(e) =>
                         setSelectedCourse({
                           ...selectedCourse,
-                          type: e.target.value === "0" ? "Theory" : "Sessional",
+                          type: e.target.value === "0" ? 0 : 1,
                         })
                       }
                     >
@@ -288,8 +291,11 @@ export default function Courses() {
                         })
                       }
                     >
-                      <option value="0">{sessionValue[0]}</option>
-                      <option value="1">{sessionValue[1]}</option>
+                      {sessionValue.map((session, index) => (
+                        <option key={index} value={index}>
+                          {session}
+                        </option>
+                      ))}
                     </Form.Select>
                   </FormGroup>
                 </Col>
@@ -298,50 +304,22 @@ export default function Courses() {
                     <Form.Label>Sections</Form.Label>
                     <br />
                     <Form>
-                      <div className=" form-check-inline">
+                      {sections.filter(s => s.batch === selectedCourse.batch && s.type === selectedCourse.type && s.session === selectedCourse.session).map((section, index) => (
+                        <div className=" form-check-inline">
                         <input
                           name="group1"
                           type="checkbox"
                           className="form-check-input"
-                          value="A"
-                          checked={selectedCheckboxes.includes("A") || selectedCourse.sections.includes("A")}
+                          value={section.section}
+                          checked={
+                            selectedCheckboxes.includes(section.section) ||
+                            selectedCourse.sections.includes(section.section)
+                          }
                           onChange={handleCheckboxChange}
                         />
-                        <label className="form-check-label">A</label>
+                        <label className="form-check-label">{section.section}</label>
                       </div>
-                      <div className=" form-check-inline">
-                        <input
-                          name="group1"
-                          type="checkbox"
-                          className="form-check-input"
-                          value="B"
-                          checked={selectedCheckboxes.includes("B") || selectedCourse.sections.includes("B")}
-                          onChange={handleCheckboxChange}
-                        />
-                        <label className="form-check-label">B</label>
-                      </div>
-                      <div className=" form-check-inline">
-                        <input
-                          name="group1"
-                          type="checkbox"
-                          className="form-check-input"
-                          value="C"
-                          checked={selectedCheckboxes.includes("C") || selectedCourse.sections.includes("C")}
-                          onChange={handleCheckboxChange}
-                        />
-                        <label className="form-check-label">C</label>
-                      </div>
-                      <div className=" form-check-inline">
-                        <input
-                          name="group1"
-                          type="checkbox"
-                          className="form-check-input"
-                          value="All"
-                          checked={selectedCheckboxes.includes("All") || selectedCourse.sections.includes("All")}
-                          onChange={handleCheckboxChange}
-                        />
-                        <label className="form-check-label">All</label>
-                      </div>
+                      ))}
                     </Form>
                   </FormGroup>
                 </Col>
@@ -359,15 +337,15 @@ export default function Courses() {
               variant="success"
               onClick={(e) => {
                 e.preventDefault();
-
-                // console.log(selectedCheckboxes,"first");
-                
+                const possibleSections = sections.filter(s => s.batch === selectedCourse.batch && s.type === selectedCourse.type && s.session === selectedCourse.session).map(s => s.section);
+                selectedCourse.sections = selectedCheckboxes.filter(s => possibleSections.includes(s))
+                console.log(selectedCourse.sections);
                 const result = validateCourse(selectedCourse);
                 if (result === null) {
                   toast.success("Course saved successfully");
                   console.log(selectedCourse);
 
-                  setCourses((prevCourses) => [...prevCourses, selectedCourse]);
+                  setCourses((prevCourses) => [...prevCourses.filter(c => c.course_id !== selectedCourse.course_id), selectedCourse]);
                   setSelectedCheckboxes([]);
                   // console.log(selectedCheckboxes,"last");
                 } else toast.error(result);
