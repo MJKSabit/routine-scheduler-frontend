@@ -28,7 +28,7 @@ export default function TheorySelect() {
 
   useEffect(() => {
     getTheoryPreferencesForm(id).then((form) => {
-      setTeacher(form.teachers);
+      setTeacher(form.teacher);
       setOfferedCourse(form.courses);
       setSelectedCourse([])
     });
