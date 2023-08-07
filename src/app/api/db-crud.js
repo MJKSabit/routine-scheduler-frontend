@@ -24,9 +24,6 @@ export const editCourse = (course_id, course) =>
 export const deleteCourse = (course_id) =>
     axios.delete(api_url(`/course/${course_id}`)).then((res) => res.data);
 
-export const getSections = () =>
-    axios.get(api_url("/section")).then((res) => res.data);
-
 export const getRooms = () =>
   axios.get(api_url("/room")).then((res) => res.data);
 export const getRoom = (room) =>
