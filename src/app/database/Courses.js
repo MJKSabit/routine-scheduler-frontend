@@ -298,7 +298,7 @@ export default function Courses() {
                     </Form.Select>
                   </FormGroup>
                 </Col>
-                <Col md={6} className="px-2 py-1 d-flex align-items-center">
+                <Col md={8} className="px-2 py-1 d-flex align-items-center">
                   <FormGroup>
                     <Form.Label>Sections</Form.Label>
                     <br />
