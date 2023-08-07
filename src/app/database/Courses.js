@@ -3,7 +3,13 @@ import { Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 
 import { toast } from "react-hot-toast";
-import { addCourse, deleteCourse, editCourse, getCourses, getSections } from "../api/db-crud";
+import {
+  addCourse,
+  deleteCourse,
+  editCourse,
+  getCourses,
+  getSections,
+} from "../api/db-crud";
 
 const validateCourse = (course) => {
   if (course.course_id === "") {
@@ -75,7 +81,7 @@ export default function Courses() {
     if (selectedCourse) {
       setSelectedCheckboxes(selectedCourse.sections);
     }
-  }, [selectedCourse])
+  }, [selectedCourse]);
 
   return (
     <div>
@@ -150,7 +156,12 @@ export default function Courses() {
                               type="button"
                               className="btn btn-primary btn-sm"
                               onClick={() => {
-                                setSelectedCourse({ ...course, index, prev_course_id: course.course_id, prev_session: course.session });
+                                setSelectedCourse({
+                                  ...course,
+                                  index,
+                                  prev_course_id: course.course_id,
+                                  prev_session: course.session,
+                                });
                               }}
                             >
                               Edit
@@ -180,7 +191,10 @@ export default function Courses() {
           size="md"
           centered
         >
-          <Modal.Header closeButton> {selectedCourse.prev_course_id ? "Edit" : "Add"} Course</Modal.Header>
+          <Modal.Header closeButton>
+            {" "}
+            {selectedCourse.prev_course_id ? "Edit" : "Add"} Course
+          </Modal.Header>
           <Modal.Body className="px-4">
             <Form className="px-2 py-1">
               <Row>
@@ -272,7 +286,6 @@ export default function Courses() {
                     />
                   </FormGroup>
                 </Col>
-
               </Row>
               <Row>
                 <Col md={4} className="px-2 py-1 d-flex align-items-center">
@@ -303,22 +316,33 @@ export default function Courses() {
                     <Form.Label>Sections</Form.Label>
                     <br />
                     <Form>
-                      {sections.filter(s => s.batch === selectedCourse.batch && s.type === selectedCourse.type && s.session === selectedCourse.session).map((section, index) => (
-                        <div className=" form-check-inline">
-                        <input
-                          name="group1"
-                          type="checkbox"
-                          className="form-check-input"
-                          value={section.section}
-                          checked={
-                            selectedCheckboxes.includes(section.section) ||
-                            selectedCourse.sections.includes(section.section)
-                          }
-                          onChange={handleCheckboxChange}
-                        />
-                        <label className="form-check-label">{section.section}</label>
-                      </div>
-                      ))}
+                      {sections
+                        .filter(
+                          (s) =>
+                            s.batch === selectedCourse.batch &&
+                            s.type === selectedCourse.type &&
+                            s.session === selectedCourse.session
+                        )
+                        .map((section, index) => (
+                          <div className=" form-check-inline">
+                            <input
+                              name="group1"
+                              type="checkbox"
+                              className="form-check-input"
+                              value={section.section}
+                              checked={
+                                selectedCheckboxes.includes(section.section) ||
+                                selectedCourse.sections.includes(
+                                  section.section
+                                )
+                              }
+                              onChange={handleCheckboxChange}
+                            />
+                            <label className="form-check-label">
+                              {section.section}
+                            </label>
+                          </div>
+                        ))}
                     </Form>
                   </FormGroup>
                 </Col>
@@ -336,16 +360,33 @@ export default function Courses() {
               variant="success"
               onClick={(e) => {
                 e.preventDefault();
-                const possibleSections = sections.filter(s => s.batch === selectedCourse.batch && s.type === selectedCourse.type && s.session === selectedCourse.session).map(s => s.section);
-                selectedCourse.sections = selectedCheckboxes.filter(s => possibleSections.includes(s))
+                const possibleSections = sections
+                  .filter(
+                    (s) =>
+                      s.batch === selectedCourse.batch &&
+                      s.type === selectedCourse.type &&
+                      s.session === selectedCourse.session
+                  )
+                  .map((s) => s.section);
+                selectedCourse.sections = selectedCheckboxes.filter((s) =>
+                  possibleSections.includes(s)
+                );
                 console.log(selectedCourse.sections);
                 const result = validateCourse(selectedCourse);
                 if (result === null) {
-
                   if (selectedCourse.prev_course_id) {
-                    editCourse(selectedCourse.prev_course_id, selectedCourse).then((res) => {
+                    editCourse(
+                      selectedCourse.prev_course_id,
+                      selectedCourse
+                    ).then((res) => {
                       toast.success("Course updated successfully");
-                      setCourses((prevCourses) => prevCourses.map(c => c.course_id === selectedCourse.prev_course_id ? selectedCourse : c));
+                      setCourses((prevCourses) =>
+                        prevCourses.map((c) =>
+                          c.course_id === selectedCourse.prev_course_id
+                            ? selectedCourse
+                            : c
+                        )
+                      );
                       setSelectedCourse(null);
                       setSelectedCheckboxes([]);
                     });
@@ -361,7 +402,12 @@ export default function Courses() {
                   toast.success("Course saved successfully");
                   console.log(selectedCourse);
 
-                  setCourses((prevCourses) => [...prevCourses.filter(c => c.course_id !== selectedCourse.course_id), selectedCourse]);
+                  setCourses((prevCourses) => [
+                    ...prevCourses.filter(
+                      (c) => c.course_id !== selectedCourse.course_id
+                    ),
+                    selectedCourse,
+                  ]);
                   setSelectedCheckboxes([]);
                   // console.log(selectedCheckboxes,"last");
                 } else toast.error(result);
@@ -373,29 +419,43 @@ export default function Courses() {
         </Modal>
       )}
 
-      <Modal
-        show={deleteCourseSelected !== null}
-        onHide={() => setDeleteCourseSelected(null)}
-        size="md"
-        centered
-      >
-        <Modal.Header closeButton>Delete Course</Modal.Header>
-        <Modal.Body className="px-4">
-          <p>Are you sure you want to delete this course?</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="outline-dark" onClick={() => setDeleteCourseSelected(null)}>
-            Close
-          </Button>
-          <Button variant="danger" onClick={e => {
-            deleteCourse(deleteCourseSelected.course_id).then(res => {
-              toast.success("Course deleted successfully");
-              setCourses(prevCourses => prevCourses.filter(c => c.course_id !== deleteCourseSelected.course_id));
-              setDeleteCourseSelected(null);
-            })
-          }}>Delete</Button>
-        </Modal.Footer>
-      </Modal>
+      {deleteCourseSelected !== null && (
+        <Modal
+          show={deleteCourseSelected !== null}
+          onHide={() => setDeleteCourseSelected(null)}
+          size="md"
+          centered
+        >
+          <Modal.Header closeButton>Delete {deleteCourseSelected.course_id}</Modal.Header>
+          <Modal.Body className="px-4">
+            <p>Are you sure you want to delete this course?</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="outline-dark"
+              onClick={() => setDeleteCourseSelected(null)}
+            >
+              Close
+            </Button>
+            <Button
+              variant="danger"
+              onClick={(e) => {
+                deleteCourse(deleteCourseSelected.course_id).then((res) => {
+                  toast.success("Course deleted successfully");
+                  setCourses((prevCourses) =>
+                    prevCourses.filter(
+                      (c) => c.course_id !== deleteCourseSelected.course_id
+                    )
+                  );
+                  setDeleteCourseSelected(null);
+                });
+              }}
+            >
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </div>
   );
 }

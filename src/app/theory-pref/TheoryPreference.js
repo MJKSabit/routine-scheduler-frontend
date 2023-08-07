@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import { getStatus, initiate } from "../api/theory-assign";
+import { finalize, getStatus, initiate } from "../api/theory-assign";
 import { Alert } from "react-bootstrap";
 
 export default function TheoryPreference() {
@@ -103,10 +103,14 @@ export default function TheoryPreference() {
                 </div>
               )}
               {status.values.length === 0 && status.status >= 2 && (
-                <Alert variant="success text-center">All submitted, waiting for next phase</Alert>
+                <Alert variant="success text-center">
+                  All submitted, waiting for next phase
+                </Alert>
               )}
               {status.values.length === 0 && status.status === 0 && (
-                <Alert variant="warning text-center">Initialize the process to send email</Alert>
+                <Alert variant="warning text-center">
+                  Initialize the process to send email
+                </Alert>
               )}
             </div>
           </div>
@@ -137,6 +141,13 @@ export default function TheoryPreference() {
                   disabled={status.status !== 2}
                   type="button"
                   className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3"
+                  onClick={(e) => {
+                    finalize().then((res) => {
+                      getStatus().then((res) => {
+                        setStatus({ values: [], ...res });
+                      });
+                    });
+                  }}
                 >
                   <i
                     className={`mdi ${
@@ -151,7 +162,14 @@ export default function TheoryPreference() {
               </h4>
               <h2 className="mb-5">Final Phase</h2>
               <h6 className="card-text">
-                Only Avaliable when everybody submitted
+              {
+                      status.status < 2
+                        ? "Only Avaliable when everybody submitted"
+                        : status.status === 2
+                        ? "Click to Assign and Finalize"
+                        : "This Phase is Completed"
+                    }
+                
               </h6>
             </div>
           </div>

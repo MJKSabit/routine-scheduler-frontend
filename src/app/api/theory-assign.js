@@ -6,3 +6,6 @@ export const getStatus = () =>
 
 export const initiate = () =>
     axios.get(api_url("/assign/theory/initiate")).then((res) => res.data);
+
+export const finalize = () => 
+    axios.get(api_url("/assign/theory/finalize")).then((res) => res.data);
