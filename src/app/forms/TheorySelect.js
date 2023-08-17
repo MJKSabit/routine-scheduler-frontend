@@ -279,9 +279,11 @@ export default function TheorySelect() {
                     onClick={(e) => {
                       e.preventDefault();
                       if (offeredCourse.length !== 0) {
-                        toast.error(
-                          "Please move all courses to your preference list before submitting"
-                        );
+                        setSelectedCourse([
+                          ...selectedCourse,
+                          ...offeredCourse,
+                        ]);
+                        setOfferedCourse([]);
                       } else {
                         const preferences = selectedCourse.map(
                           (course) => course.course_id
@@ -293,7 +295,7 @@ export default function TheorySelect() {
                       }
                     }}
                   >
-                    SUBMIT
+                    {offeredCourse.length !== 0 ? "Confirm" : "SUBMIT"}
                   </Button>
                 </div>
               </form>
