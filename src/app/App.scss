@@ -8,7 +8,6 @@
 // @import '~react-bootstrap-typeahead/css/Typeahead-bs4.css';
 // @import '~react-datepicker/dist/react-datepicker.css';
 
-
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
 
@@ -22,7 +21,6 @@
 /* === Icon fonts === */
 @import "~@mdi/font/scss/materialdesignicons";
 
-
 /* === Template mixins === */
 @import "../assets/styles/mixins/animation";
 @import "../assets/styles/mixins/badges";
@@ -34,7 +32,6 @@
 @import "../assets/styles/mixins/popovers";
 @import "../assets/styles/mixins/tooltips";
 @import "../assets/styles/mixins/no-ui-slider";
-
 
 /* === Core Styles === */
 @import "../assets/styles/background";
@@ -111,21 +108,82 @@
 @import "../assets/styles/layout";
 @import "../assets/styles/settings-panel";
 
-.btn-close {
-    // Add &times; to close button
-    &:before {
-        content: "\00d7";
-    }
+$checkbox-size: 2.5rem;
 
-    // no border
-    border-radius: 5px;
+input[type="checkbox"].big-checkbox {
+  appearance: none;
+  width: $checkbox-size;
+  height: $checkbox-size;
+  position: relative;
+  cursor: pointer;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    color: rgba(white, 0);
+    background-color: white;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 2px $dark;
+    font: {
+      size: 0rem;
+      weight: bolder;
+    }
+    line-height: $checkbox-size;
+    text-align: center;
+    transition: background-color 350ms 0ms ease, color 350ms 250ms ease,
+      font-size 350ms 250ms ease;
+  }
+
+  &:checked::after {
+    content: "\02714";
+    color: rgba(white, 1);
+    background-color: $success;
+    font-size: 0.8 * $checkbox-size;
+  }
+
+  &:disabled::after {
+    content: " ";
+    cursor: not-allowed;
+    box-shadow: inset 0 0 0 2px $danger;
+  }
+
+  &:checked:disabled::after {
+    background-color: $danger;
+    content: " ";
+  }
 }
 
-.box,.box:hover {
-    box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.5);
-  }
-  .box:active:hover:not([disabled]) {
-    transform: scale(1.1);
-    box-shadow: 0px 10px 20px 2px rgba(0, 0, 0, 0.25);
+.btn-close {
+  // Add &times; to close button
+  &:before {
+    content: "\00d7";
   }
 
+  // no border
+  border-radius: 5px;
+}
+
+.box,
+.box:hover {
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.5);
+}
+.box:active:hover:not([disabled]) {
+  transform: scale(1.1);
+  box-shadow: 0px 10px 20px 2px rgba(0, 0, 0, 0.25);
+}
+
+.routine-table {
+  table-layout: fixed;
+  border: 3px solid $dark;
+
+  th,
+  td {
+    border: 2px solid $dark;
+    text-align: center;
+    vertical-align: middle;
+  }
+}

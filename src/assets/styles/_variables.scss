@@ -62,6 +62,9 @@ $theme-gradient-colors: (
   dark:            linear-gradient(89deg, #5e7188, #3e4b5b)
 );
 
+// theme-gradient-colors success variable
+$success-gradient-color: map-get($map: $theme-gradient-colors, $key: success);
+
 
 ////////// COLOR SYSTEM //////////
 
