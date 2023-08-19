@@ -1,13 +1,38 @@
 import { useEffect, useRef } from "react";
 import { useState } from "react";
 import { finalize, getStatus, initiate } from "../api/theory-assign";
-import { Alert, Button, FormCheck, Modal } from "react-bootstrap";
+import { Alert, Button, FormCheck, Modal, ProgressBar } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 import ScheduleSelectionTable, { days } from "../shared/ScheduleSelctionTable";
+import { getCourses, getSections } from "../api/db-crud";
+import { toast } from "react-hot-toast";
 
-export default function TheoryPreference() {
-  const [selected, setSelected] = useState(new Set([]));
+export default function TheorySchedule() {
+  const [selectedSlots, setSelectedSlots] = useState(new Set([]));
+  const [filled, setFilled] = useState([...days.map((day) => `${day} 2`)]);
   const [onlyNonDept, setOnlyNonDept] = useState(true);
+  const [sections, setSections] = useState([]);
+  const [selectedSection, setSelectedSection] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isChanged, setIsChanged] = useState(false);
+
+  useEffect(() => {
+    getSections().then((sections) => {
+      setSections(sections.filter((section) => section.type === 0));
+    });
+    getCourses().then((courses) => {
+      courses.push({
+        course_id: "CT",
+        name: "CLass Test",
+        type: 0,
+        class_per_week: 3,
+        sections: ["A", "B", "C"],
+        batch: null,
+      });
+      setCourses(courses);
+    });
+  }, []);
 
   return (
     <div>
@@ -32,13 +57,28 @@ export default function TheoryPreference() {
             <div className="card-body">
               <h4 className="card-title">Schedule </h4>
               <ScheduleSelectionTable
-                filled={new Set(days.map((day) => `${day} 2`))}
-                selected={selected}
+                filled={new Set(filled)}
+                selected={selectedSlots}
                 onChange={(day, time, checked) => {
+                  if (!selectedCourse) {
+                    toast.error("Select a course first");
+                    return;
+                  }
+
                   if (checked) {
-                    setSelected(new Set([...selected, `${day} ${time}`]));
+                    if (selectedSlots.size >= selectedCourse.class_per_week) {
+                      toast.error(
+                        `You can only select ${selectedCourse.class_per_week} slots`
+                      );
+                      return;
+                    }
+                    setIsChanged(true);
+                    setSelectedSlots(
+                      new Set([...selectedSlots, `${day} ${time}`])
+                    );
                   } else {
-                    setSelected((selected) => {
+                    setIsChanged(true);
+                    setSelectedSlots((selected) => {
                       const newSelected = new Set(selected);
                       newSelected.delete(`${day} ${time}`);
                       return newSelected;
@@ -55,18 +95,127 @@ export default function TheoryPreference() {
             <div className="card-body">
               <h4 className="card-title">Select Course </h4>
               <Form>
-                <div class="form-check">
+                <Form.Select
+                  className="form-control-sm btn-block"
+                  onChange={(e) => {
+                    if (
+                      e.target.value !== selectedSection &&
+                      isChanged &&
+                      !window.confirm(
+                        "You have unsaved changes. Are you sure you want to continue?"
+                      )
+                    ) {
+                      e.target.value = selectedSection;
+                      return;
+                    }
+                    setSelectedSection(e.target.value);
+                    setSelectedCourse(null);
+                    setIsChanged(false);
+                    setSelectedSlots(new Set([]));
+                  }}
+                >
+                  <option value={null} selected={selectedSection === null}>
+                    {" "}
+                    Select Section{" "}
+                  </option>
+                  {sections.map((section) => (
+                    <option
+                      value={`${section.batch}${section.section}`}
+                      selected={
+                        selectedSection === `${section.batch}${section.section}`
+                      }
+                    >
+                      {section.level_term} - Section {section.section}
+                    </option>
+                  ))}
+                </Form.Select>
+                <div className="form-check btn-block">
                   <input
-                    class="form-check-input"
+                    className="form-check-input"
                     type="checkbox"
                     checked={onlyNonDept}
                     onChange={(e) => setOnlyNonDept(e.target.checked)}
                     id="flexCheckDefault"
                   />
-                  <label class="form-check-label" for="flexCheckDefault">
+                  <label
+                    className="form-check-label mb-2"
+                    for="flexCheckDefault"
+                  >
                     Non-departmental only
                   </label>
+                  <Form.Select
+                    className="form-control-sm btn-block"
+                    onChange={(e) => {
+                      if (
+                        selectedCourse &&
+                        e.target.value !== selectedCourse.course_id &&
+                        isChanged &&
+                        !window.confirm(
+                          "You have unsaved changes. Are you sure you want to continue?"
+                        )
+                      ) {
+                        e.target.value = selectedCourse.course_id;
+                        return;
+                      }
+                      setSelectedCourse(
+                        courses.find((c) => c.course_id === e.target.value)
+                      );
+                      setIsChanged(false);
+                      setSelectedSlots(new Set([]));
+                    }}
+                  >
+                    <option value={null} selected={selectedCourse === null}>
+                      {" "}
+                      Select Course{" "}
+                    </option>
+                    {selectedSection && (
+                    <option value={`CT`} selected={selectedCourse === `CT`}>
+                      {" "}
+                      CT{" "}
+                    </option>
+                    )}
+                    {courses &&
+                      courses
+                        .filter(
+                          (c) =>
+                            c.sections
+                              .map((s) => `${c.batch}${s}`)
+                              .includes(selectedSection) &&
+                            (!onlyNonDept || !c.course_id.startsWith("CSE"))
+                        )
+                        .map((course) => (
+                          <option
+                            value={course.course_id}
+                            selected={selectedCourse === course.course_id}
+                          >
+                            {course.course_id}
+                          </option>
+                        ))}
+                  </Form.Select>
+                  {selectedCourse && (
+                    <ProgressBar
+                      variant="success"
+                      now={selectedSlots.size}
+                      max={selectedCourse.class_per_week}
+                      label={`Selected ${selectedSlots.size} / ${selectedCourse.class_per_week}`}
+                      className="my-3"
+                      style={{ height: "2rem" }}
+                    />
+                  )}
                 </div>
+                <Button
+                  variant="primary"
+                  className="btn-sm btn-block"
+                  onClick={() => {
+                    if (!selectedCourse) {
+                      toast.error("Select a course first");
+                      return;
+                    }
+                  }}
+                >
+                  {" "}
+                  Assign{" "}
+                </Button>
               </Form>
             </div>
           </div>
