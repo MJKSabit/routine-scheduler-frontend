@@ -13,6 +13,7 @@ const Courses = lazy(() => import('./database/Courses'));
 
 const TheoryPreference = lazy(() => import("./theory-pref/TheoryPreference"));
 const TheorySelect = lazy(() => import("./forms/TheorySelect"));
+const LabRoomAssign = lazy(() => import("./lab-room-assign/LabRoomAssign"));
 
 const Error404 = lazy(() => import("./error-pages/Error404"));
 const Error500 = lazy(() => import("./error-pages/Error500"));
@@ -37,6 +38,7 @@ export default function AppRoutes() {
           <Route path="/database/rooms" component={Rooms} />
           <Route path="/database/courses" component={ Courses } />
           <Route path="/theory-assign" component={ TheoryPreference } />
+          <Route path="/room-assign" component={ LabRoomAssign } />
           <Redirect to="/dashboard" />
         </Switch>
       ) : (
