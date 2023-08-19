@@ -3,32 +3,38 @@ import { useRef } from "react";
 import { useState } from "react";
 import { Button } from "react-bootstrap";
 import { toast } from "react-hot-toast";
-import { useParams } from "react-router-dom";
-import {
-  getTheoryPreferencesForm,
-  submitTheoryPreferencesForm,
-} from "../api/form";
+
+import {getLabCourses,getLabRooms} from "../api/db-crud";
 
 export default function LabRoomAssign() {
   const [offeredCourse, setOfferedCourse] = useState([
-    { course_id: "CSE 101", name: "Introduction to Computer Science" },
-    { course_id: "CSE 102", name: "Introduction to Programming" },
-    { course_id: "CSE 103", name: "Discrete Mathematics" },
-    { course_id: "CSE 104", name: "Physics" },
-    { course_id: "CSE 105", name: "Physics Lab" },
+    // { course_id: "CSE 101", name: "Introduction to Computer Science" },
+    // { course_id: "CSE 102", name: "Introduction to Programming" },
+    // { course_id: "CSE 103", name: "Discrete Mathematics" },
   ]);
 
   const [rooms, setRooms] = useState([
-    { room: "MCL" },
-    { room: "MML" },
-    { room: "CL" },
-    { room: "SEL" },
-    { room: "NL" },
+    // { room: "MCL" },
+    // { room: "MML" },
+    // { room: "CL" },
+    // { room: "SEL" },
+    // { room: "NL" },
   ]);
 
   const [courseRoom, setCourseRoom] = useState([
     // { course_id: "CSE 101", rooms: ["MCL", "MML"] },
   ]);
+
+  useEffect(() => {
+    getLabRooms().then((res) => {
+      // console.log(res);
+      setRooms(res);
+    });
+    getLabCourses().then((res) => {
+      // console.log(res);
+      setOfferedCourse(res);
+    });
+  }, []);
 
   const selectedCourseRef = useRef();
   const selectedRoomRef = useRef();
