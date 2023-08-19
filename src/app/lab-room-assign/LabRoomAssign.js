@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "react-bootstrap";
 import { toast } from "react-hot-toast";
 
-import {getLabCourses,getLabRooms} from "../api/db-crud";
+import { getLabCourses, getLabRooms } from "../api/db-crud";
 
 export default function LabRoomAssign() {
   const [offeredCourse, setOfferedCourse] = useState([
@@ -35,6 +35,80 @@ export default function LabRoomAssign() {
       setOfferedCourse(res);
     });
   }, []);
+
+  const uniqueNames = {};
+
+  // Filter and show only the unique named courses
+  const uniqueNamedCourses = offeredCourse.filter((obj) => {
+    if (!uniqueNames[obj.name]) {
+      uniqueNames[obj.name] = true;
+      return true;
+    }
+    return false;
+  });
+
+  const maxAllowed = Math.ceil(offeredCourse.length / rooms.length);
+  const roomAlloc = rooms.map((room) => {
+    return {
+      room: room.room,
+      count: 0,
+      courses: [],
+    };
+  });
+
+  // console.log(roomAlloc);
+
+  const labRoomAssignHandler = () => {
+
+    let remainedCourse = offeredCourse;
+    // for constraints
+    courseRoom.map((item) => {
+      
+      let minCount = Infinity;
+      let minIndex = -1;
+
+      // console.log(item.rooms);
+
+      item.rooms.map((room) => {
+        const room_index = rooms.findIndex((r) => r.room === room);
+        // console.log(index, roomAlloc[index].count);
+        if (roomAlloc[room_index].count < minCount) {
+          minCount = roomAlloc[room_index].count;
+          minIndex = room_index;
+        }
+      });
+
+      const courses = offeredCourse.filter((course) => course.course_id === item.course_id);
+      remainedCourse = offeredCourse.filter((course) => course.course_id !== item.course_id)
+      // console.log("for ",roomAlloc[room_index].room, minIndex);
+      roomAlloc[minIndex].count += courses.length;
+      roomAlloc[minIndex].courses.push(...courses);
+    });
+
+
+    // console.log(remainedCourse);
+
+    // for remaining courses
+    roomAlloc.map((room) => {
+      if (room.count < maxAllowed) {
+        const courses = remainedCourse.splice(0, maxAllowed - room.count);
+        room.count += courses.length;
+        room.courses.push(...courses);
+        remainedCourse = remainedCourse.filter((course) => !courses.includes(course));
+      }
+    }
+    );
+
+    // lab room assignment in this roomAlloc array
+
+
+    console.log(roomAlloc);
+
+    
+
+  }
+
+  // console.log(uniqueNamedCourses);
 
   const selectedCourseRef = useRef();
   const selectedRoomRef = useRef();
@@ -112,7 +186,7 @@ export default function LabRoomAssign() {
                               style={{ height: 400, width: "100%" }}
                               ref={selectedCourseRef}
                             >
-                              {offeredCourse.map((course) => (
+                              {uniqueNamedCourses.map((course) => (
                                 <option value={course.course_id}>
                                   {course.course_id} - {course.name}
                                 </option>
@@ -137,7 +211,7 @@ export default function LabRoomAssign() {
                                   )
                                     .map((option) => option.value)
                                     .map((course_id) =>
-                                      offeredCourse.find(
+                                      uniqueNamedCourses.find(
                                         (course) =>
                                           course.course_id === course_id
                                       )
@@ -168,6 +242,7 @@ export default function LabRoomAssign() {
                               >
                                 Must Use
                               </Button>
+                              <Button variant="outline-danger" size="sm" onClick={labRoomAssignHandler}>Save</Button>
                             </div>
                           </div>
 
