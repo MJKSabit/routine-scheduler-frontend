@@ -128,7 +128,7 @@ export default function TheoryPreference() {
           <div className="card">
             <div className="card-body">
               <h4 className="card-title">Already Submitted</h4>
-              {status.values.length !== 0 && (
+              {status.submitted.length !== 0 && (
                 <div className="table-responsive">
                   <table className="table">
                     <thead>
