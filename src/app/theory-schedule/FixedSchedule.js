@@ -6,10 +6,11 @@ import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 import ScheduleSelectionTable, { days } from "../shared/ScheduleSelctionTable";
 import { getCourses, getSections } from "../api/db-crud";
 import { toast } from "react-hot-toast";
+import { getSchedules } from "../api/theory-schedule";
 
 export default function TheorySchedule() {
   const [selectedSlots, setSelectedSlots] = useState(new Set([]));
-  const [filled, setFilled] = useState([...days.map((day) => `${day} 2`)]);
+  const [schedules, setSchedules] = useState([]);
   const [onlyNonDept, setOnlyNonDept] = useState(true);
   const [sections, setSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState(null);
@@ -34,6 +35,15 @@ export default function TheorySchedule() {
     });
   }, []);
 
+  useEffect(() => {
+    if (selectedSection) {
+      const [batch, section] = selectedSection.split(" ");
+      getSchedules(batch, section).then((res) => {
+        setSchedules(res);
+      });
+    }
+  }, [selectedSection]);
+
   return (
     <div>
       <div className="page-header">
@@ -57,7 +67,12 @@ export default function TheorySchedule() {
             <div className="card-body">
               <h4 className="card-title">Schedule </h4>
               <ScheduleSelectionTable
-                filled={new Set(filled)}
+                filled={
+                  new Set([
+                    ...days.map((day) => `${day} 2`),
+                    ...schedules.filter(s => s.course_id !== selectedCourse.course_id).map((slot) => `${slot.day} ${slot.time}`),
+                  ])
+                }
                 selected={selectedSlots}
                 onChange={(day, time, checked) => {
                   if (!selectedCourse) {
@@ -120,9 +135,10 @@ export default function TheorySchedule() {
                   </option>
                   {sections.map((section) => (
                     <option
-                      value={`${section.batch}${section.section}`}
+                      value={`${section.batch} ${section.section}`}
                       selected={
-                        selectedSection === `${section.batch}${section.section}`
+                        selectedSection ===
+                        `${section.batch} ${section.section}`
                       }
                     >
                       {section.level_term} - Section {section.section}
@@ -161,7 +177,13 @@ export default function TheorySchedule() {
                         courses.find((c) => c.course_id === e.target.value)
                       );
                       setIsChanged(false);
-                      setSelectedSlots(new Set([]));
+                      setSelectedSlots(
+                        new Set(
+                          schedules
+                            .filter((s) => s.course_id === e.target.value)
+                            .map((slot) => `${slot.day} ${slot.time}`)
+                        )
+                      );
                     }}
                   >
                     <option value={null} selected={selectedCourse === null}>
@@ -169,17 +191,17 @@ export default function TheorySchedule() {
                       Select Course{" "}
                     </option>
                     {selectedSection && (
-                    <option value={`CT`} selected={selectedCourse === `CT`}>
-                      {" "}
-                      CT{" "}
-                    </option>
+                      <option value={`CT`} selected={selectedCourse === `CT`}>
+                        {" "}
+                        CT{" "}
+                      </option>
                     )}
                     {courses &&
                       courses
                         .filter(
                           (c) =>
                             c.sections
-                              .map((s) => `${c.batch}${s}`)
+                              .map((s) => `${c.batch} ${s}`)
                               .includes(selectedSection) &&
                             (!onlyNonDept || !c.course_id.startsWith("CSE"))
                         )
