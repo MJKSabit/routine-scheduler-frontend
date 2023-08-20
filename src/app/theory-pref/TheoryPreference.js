@@ -352,6 +352,48 @@ export default function TheoryPreference() {
           });
         }}
       />
+
+      {status.assignment && (
+        <div className="row">
+          <div className="col-12 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <h4 className="card-title">Assigned Teachers</h4>
+                <div className="table-responsive">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th> Course ID </th>
+                        <th> Name </th>
+                        <th> Teachers </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {status.assignment.map((course, index) => (
+                        <tr key={index}>
+                          <td> {course.course_id} </td>
+                          <td> {course.name} </td>
+                          <td>
+                            <ul>
+                              {(course.teachers ? course.teachers : []).map(
+                                (teacher) => (
+                                  <li>
+                                    {teacher.initial} - {teacher.name}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
