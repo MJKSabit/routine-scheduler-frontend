@@ -12,7 +12,6 @@ export default function TheoryPreference() {
     submitted: [],
   });
   const [selectedTeacher, setSelectedTeacher] = useState(null);
-
   const [selectedCourse, setSelectedCourse] = useState([]);
 
   useEffect(() => {
