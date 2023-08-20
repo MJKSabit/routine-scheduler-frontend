@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useState } from "react";
-import { Alert, Button, FormCheck, Modal } from "react-bootstrap";
+import { Alert, Button, FormCheck, Modal, ModalBody } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 import { finalize, getStatus, initiate } from "../api/theory-schedule";
 import CardWithButton from "../shared/CardWithButton";
@@ -93,7 +93,7 @@ export default function TheoryAskSchedule() {
               )}
               {status.values.length === 0 && status.status >= 2 && (
                 <Alert variant="success text-center">
-                  All submitted, waiting for next phase
+                  All submitted, proceed to next step
                 </Alert>
               )}
               {status.values.length === 0 && status.status === 0 && (
@@ -136,7 +136,6 @@ export default function TheoryAskSchedule() {
                                 setSelectedTeacher({
                                   ...teacher,
                                 });
-                                setSelectedCourse(teacher.response);
                               }}
                             >
                               Show
@@ -158,31 +157,43 @@ export default function TheoryAskSchedule() {
         </div>
       </div>
 
+      {selectedTeacher && (
+        <Modal show={true} onHide={() => setSelectedTeacher(null)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {selectedTeacher.name} ({selectedTeacher.initial})
+            </Modal.Title>
+          </Modal.Header>
+          <ModalBody>
+            <h4>Selected Timeslots</h4>
+            <ul>
+              {JSON.parse(selectedTeacher.response).map((slot) => (<li>
+                {slot.day} {slot.time}{slot.time%12 < 6 ? "PM" : "AM"} - {slot.batch} {slot.section}
+              </li>))}
+            </ul>
+          </ModalBody>
+          <Modal.Footer>
+            <Button
+              variant="outline-danger"
+              onClick={() => setSelectedTeacher(null)}
+            >
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+
       <CardWithButton
         title="Assign Schedule to teachers"
         subtitle="Final Phase"
         status={
           status.status < 2
-            ? "Only Avaliable when everybody submitted"
-            : status.status === 2
-            ? "Click to Assign and Finalize"
+            ? "Waiting for everones response"
             : "This Phase is Completed"
         }
-        bgColor={
-          status.status < 2
-            ? "secondary"
-            : status.status === 2
-            ? "info"
-            : "success"
-        }
-        icon={
-          status.status < 2
-            ? "mdi-cancel"
-            : status.status === 2
-            ? "mdi-autorenew"
-            : "mdi-check"
-        }
-        disabled={status.status !== 2}
+        bgColor={status.status < 2 ? "secondary" : "success"}
+        icon={status.status < 2 ? "mdi-cancel" : "mdi-check"}
+        disabled={true}
         onClick={(e) => {
           finalize().then((res) => {
             getStatus().then((res) => {

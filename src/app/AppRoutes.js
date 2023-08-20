@@ -13,6 +13,7 @@ const Courses = lazy(() => import("./database/Courses"));
 
 const TheoryPreference = lazy(() => import("./theory-pref/TheoryPreference"));
 const TheorySelect = lazy(() => import("./forms/TheorySelect"));
+const TheoryScheduleForm = lazy(() => import("./forms/TheorySchedule"));
 
 const TheorySchedule = lazy(() => import("./theory-schedule/AskForSchedule"));
 const FixedSchedule = lazy(() => import("./theory-schedule/FixedSchedule"));
@@ -32,6 +33,7 @@ export default function AppRoutes() {
     <Suspense fallback={<Spinner />}>
       <Switch>
         <Route exact path="/form/theory-pref/:id" component={TheorySelect} />
+        <Route exact path="/form/theory-sched/:id" component={TheoryScheduleForm} />
         {user.loggedIn ? (
           <Switch>
             <Route exact path="/dashboard" component={Dashboard} />

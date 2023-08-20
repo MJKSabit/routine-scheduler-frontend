@@ -13,6 +13,13 @@ export default function ScheduleSelectionTable({
   labTimes = labTimes || new Set(days.map((day) => `${day} 2`));
   onChange =
     onChange || ((day, time, checked) => console.log(day, time, checked));
+  
+  const changedOnChange = (day, time, checked) => {
+    if (!(selected.has(`${day} ${time}`) && filled.has(`${day} ${time}`))) {
+      onChange(day, time, checked);
+    }
+  }
+  
   return (
     <table class="table routine-table">
       <thead>
@@ -45,9 +52,9 @@ export default function ScheduleSelectionTable({
                     checked={
                       filled.has(`${day} ${time}`) || selected.has(`${day} ${time}`)
                     }
-                    onChange={(e) => onChange(day, time, e.target.checked)}
+                    onChange={(e) => changedOnChange(day, time, e.target.checked)}
                     disabled={
-                      break_times.has(time) || filled.has(`${day} ${time}`)
+                      !selected.has(`${day} ${time}`) && (break_times.has(time) || filled.has(`${day} ${time}`))
                     }
                   />
                 </td>

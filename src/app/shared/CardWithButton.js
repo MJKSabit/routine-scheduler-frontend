@@ -26,10 +26,10 @@ export default function CardWithButton(
               <button
                 disabled={disabled}
                 type="button"
-                className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3 box box-hover"
+                className="btn btn-rounded btn-light btn-lg float-right position-relative z-index-3 box box-hover"
                 onClick={onClick}
               >
-                <i className={`mdi ${icon} mdi-24px float-right`}></i>
+                <i className={`mdi ${icon} mdi-48px float-right`}></i>
               </button>
             </h4>
             <h2 className="mb-5">{subtitle}</h2>
