@@ -13,10 +13,12 @@ const Courses = lazy(() => import("./database/Courses"));
 
 const TheoryPreference = lazy(() => import("./theory-pref/TheoryPreference"));
 const TheorySelect = lazy(() => import("./forms/TheorySelect"));
+
 const TheoryScheduleForm = lazy(() => import("./forms/TheorySchedule"));
 
 const TheorySchedule = lazy(() => import("./theory-schedule/AskForSchedule"));
 const FixedSchedule = lazy(() => import("./theory-schedule/FixedSchedule"));
+const LabRoomAssign = lazy(() => import("./lab-room-assign/LabRoomAssign"));
 
 const Error404 = lazy(() => import("./error-pages/Error404"));
 const Error500 = lazy(() => import("./error-pages/Error500"));
@@ -44,6 +46,7 @@ export default function AppRoutes() {
             <Route path="/theory-assign" component={TheoryPreference} />
             <Route path="/theory-schedule/ask" component={TheorySchedule} />
             <Route path="/theory-schedule/fixed" component={FixedSchedule} />
+            <Route path="/room-assign" component={ LabRoomAssign } />
             <Redirect to="/dashboard" />
           </Switch>
         ) : (
