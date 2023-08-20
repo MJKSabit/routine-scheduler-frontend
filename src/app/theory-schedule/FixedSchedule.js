@@ -6,7 +6,10 @@ import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 import ScheduleSelectionTable, { days } from "../shared/ScheduleSelctionTable";
 import { getCourses, getSections } from "../api/db-crud";
 import { toast } from "react-hot-toast";
-import { getSchedules } from "../api/theory-schedule";
+import {
+  getSchedules,
+  setSchedules as setSchedulesAPI,
+} from "../api/theory-schedule";
 
 export default function TheorySchedule() {
   const [selectedSlots, setSelectedSlots] = useState(new Set([]));
@@ -70,7 +73,9 @@ export default function TheorySchedule() {
                 filled={
                   new Set([
                     ...days.map((day) => `${day} 2`),
-                    ...schedules.filter(s => s.course_id !== selectedCourse.course_id).map((slot) => `${slot.day} ${slot.time}`),
+                    ...schedules
+                      .filter((s) => !selectedCourse || s.course_id !== selectedCourse.course_id)
+                      .map((slot) => `${slot.day} ${slot.time}`),
                   ])
                 }
                 selected={selectedSlots}
@@ -129,7 +134,7 @@ export default function TheorySchedule() {
                     setSelectedSlots(new Set([]));
                   }}
                 >
-                  <option value={null} selected={selectedSection === null}>
+                  <option value={null} selected={selectedSection === null} disabled>
                     {" "}
                     Select Section{" "}
                   </option>
@@ -186,7 +191,7 @@ export default function TheorySchedule() {
                       );
                     }}
                   >
-                    <option value={null} selected={selectedCourse === null}>
+                    <option value={null} selected={selectedCourse === null} disabled>
                       {" "}
                       Select Course{" "}
                     </option>
@@ -233,6 +238,20 @@ export default function TheorySchedule() {
                       toast.error("Select a course first");
                       return;
                     }
+                    const [batch, section] = selectedSection.split(" ");
+                    setSchedulesAPI(
+                      batch,
+                      section,
+                      selectedCourse.course_id,
+                      [...selectedSlots].map((slot) => {
+                        const [day, time] = slot.split(" ");
+                        return { day, time };
+                      })
+                    ).then((res) => {
+                      toast.success("Schedule saved");
+                      setIsChanged(false);
+                      getSchedules(batch, section).then(setSchedules);
+                    });
                   }}
                 >
                   {" "}

@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useState } from "react";
-import { finalize, getStatus, initiate } from "../api/theory-assign";
 import { Alert, Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 
-export default function TheoryPreference() {
+export default function TheoryAskSchedule() {
   const [status, setStatus] = useState({ status: 0, values: [] });
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
@@ -54,11 +53,7 @@ export default function TheoryPreference() {
                   type="button"
                   className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3 box box-hover"
                   onClick={(e) => {
-                    initiate().then((res) => {
-                      getStatus().then((res) => {
-                        setStatus({ values: [], ...res });
-                      });
-                    });
+                    
                   }}
                 >
                   
@@ -152,11 +147,7 @@ export default function TheoryPreference() {
                   type="button"
                   className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3 box box-hover"
                   onClick={(e) => {
-                    finalize().then((res) => {
-                      getStatus().then((res) => {
-                        setStatus({ values: [], ...res });
-                      });
-                    });
+                    
                   }}
                 >
                   <i
