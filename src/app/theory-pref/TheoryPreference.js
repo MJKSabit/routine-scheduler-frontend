@@ -3,16 +3,21 @@ import { useState } from "react";
 import { finalize, getStatus, initiate } from "../api/theory-assign";
 import { Alert, Button, FormCheck, Modal } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
+import CardWithButton from "../shared/CardWithButton";
 
 export default function TheoryPreference() {
-  const [status, setStatus] = useState({ status: 0, values: [] });
+  const [status, setStatus] = useState({
+    status: 0,
+    values: [],
+    submitted: [],
+  });
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
   const [selectedCourse, setSelectedCourse] = useState([]);
 
   useEffect(() => {
     getStatus().then((res) => {
-      setStatus({ values: [], ...res });
+      setStatus({ values: [], submitted: [], ...res });
     });
   }, []);
 
@@ -28,49 +33,22 @@ export default function TheoryPreference() {
           </ol>
         </nav>
       </div>
-      <div className="row">
-        <div className="col stretch-card grid-margin">
-          <div
-            className={`card bg-gradient-${status.status === 0 ? "danger" : "success"
-              } card-img-holder text-white`}
-          >
-            <div className="card-body">
-              <img
-                src={
-                  require("../../assets/images/dashboard/circle.svg").default
-                }
-                className="card-img-absolute"
-                alt="circle"
-              />
-              <h4 className="font-weight-normal mb-3">
-                Send Email with Form Link{" "}
-                <button
-                  disabled={status.status !== 0}
-                  type="button"
-                  className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3 box box-hover"
-                  onClick={(e) => {
-                    initiate().then((res) => {
-                      getStatus().then((res) => {
-                        setStatus({ values: [], ...res });
-                      });
-                    });
-                  }}
-                >
-                  
-                  <i
-                    className={`mdi ${status.status === 0 ? "mdi-autorenew" : "mdi-check"
-                      } mdi-24px float-right`}
-                  ></i>
-                </button>
-              </h4>
-              <h2 className="mb-5">Initial Phase</h2>
-              <h6 className="card-text">
-                {status.status === 0 ? "Not Sent" : "Sent"}
-              </h6>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CardWithButton
+        title="Send Email with Form Link"
+        subtitle="Initial Phase"
+        status={status.status === 0 ? "Not Sent" : "Sent"}
+        bgColor={status.status === 0 ? "danger" : "success"}
+        icon={status.status === 0 ? "mdi-autorenew" : "mdi-check"}
+        disabled={status.status !== 0}
+        onClick={(e) => {
+          initiate().then((res) => {
+            getStatus().then((res) => {
+              setStatus({ values: [], submitted: [], ...res });
+            });
+          });
+        }}
+      />
+
       <div className="row">
         <div className="col-12 grid-margin">
           <div className="card">
@@ -122,7 +100,6 @@ export default function TheoryPreference() {
         </div>
       </div>
 
-
       <div className="row">
         <div className="col-12 grid-margin">
           <div className="card">
@@ -152,13 +129,11 @@ export default function TheoryPreference() {
                               onClick={() => {
                                 setSelectedTeacher({
                                   ...teacher,
-                                })
-                                setSelectedCourse(teacher.response)
-                                console.log(selectedTeacher)
-                              }
-                              }
+                                });
+                                setSelectedCourse(teacher.response);
+                                console.log(selectedTeacher);
+                              }}
                             >
-
                               Show
                             </button>
                           </td>
@@ -190,10 +165,8 @@ export default function TheoryPreference() {
             <h6 className="font-weight-light">
               {selectedTeacher.name} ({selectedTeacher.initial})
             </h6>
-
           </Modal.Header>
           <Modal.Body className="px-4">
-
             <form>
               <div className="row">
                 <div className="col-12" style={{ padding: 10 }}>
@@ -205,18 +178,13 @@ export default function TheoryPreference() {
                     ref={selectedCourseRef}
                   >
                     {selectedCourse.map((course) => (
-                      <option value={course}>
-                        {course}
-                      </option>
+                      <option value={course}>{course}</option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="row d-flex justify-content-between">
-                <div
-                  className="col-3 "
-                  style={{ padding: 10 }}
-                >
+                <div className="col-3 " style={{ padding: 10 }}>
                   <div className="d-grid gap-2  mb-5">
                     <Button
                       variant="outline-dark"
@@ -225,8 +193,7 @@ export default function TheoryPreference() {
                       onClick={(e) => {
                         const selectedOptions = Array.from(
                           selectedCourseRef.current.selectedOptions
-                        )
-                          .map((option) => option.value)
+                        ).map((option) => option.value);
 
                         setSelectedCourse(
                           selectedCourse.filter(
@@ -246,11 +213,8 @@ export default function TheoryPreference() {
                       Move Top
                     </Button>
                   </div>
-                  </div>
-                  <div
-                  className="col-3 "
-                  style={{ padding: 10 }}
-                >
+                </div>
+                <div className="col-3 " style={{ padding: 10 }}>
                   <div className="d-grid gap-2  mb-5">
                     <Button
                       variant="outline-dark"
@@ -265,13 +229,11 @@ export default function TheoryPreference() {
 
                         for (let i = 0; i < selectedOptions.length; i++) {
                           const index = reorderedCourses.findIndex(
-                            (course) =>
-                              course === selectedOptions[i]
+                            (course) => course === selectedOptions[i]
                           );
                           if (index === 0) continue;
                           const temp = reorderedCourses[index];
-                          reorderedCourses[index] =
-                            reorderedCourses[index - 1];
+                          reorderedCourses[index] = reorderedCourses[index - 1];
                           reorderedCourses[index - 1] = temp;
                         }
                         setSelectedCourse(reorderedCourses);
@@ -283,12 +245,9 @@ export default function TheoryPreference() {
                     >
                       Move Up
                     </Button>
-                    </div>
-                    </div>
-                    <div
-                  className="col-3 "
-                  style={{ padding: 10 }}
-                >
+                  </div>
+                </div>
+                <div className="col-3 " style={{ padding: 10 }}>
                   <div className="d-grid gap-2  mb-5">
                     <Button
                       variant="outline-dark"
@@ -299,19 +258,13 @@ export default function TheoryPreference() {
                           selectedCourseRef.current.selectedOptions
                         ).map((option) => option.value);
                         const reorderedCourses = [...selectedCourse];
-                        for (
-                          let i = selectedOptions.length - 1;
-                          i >= 0;
-                          i--
-                        ) {
+                        for (let i = selectedOptions.length - 1; i >= 0; i--) {
                           const index = reorderedCourses.findIndex(
-                            (course) =>
-                              course === selectedOptions[i]
+                            (course) => course === selectedOptions[i]
                           );
                           if (index === reorderedCourses.length - 1) continue;
                           const temp = reorderedCourses[index];
-                          reorderedCourses[index] =
-                            reorderedCourses[index + 1];
+                          reorderedCourses[index] = reorderedCourses[index + 1];
                           reorderedCourses[index + 1] = temp;
                         }
                         setSelectedCourse(reorderedCourses);
@@ -323,118 +276,82 @@ export default function TheoryPreference() {
                     >
                       Move Down
                     </Button>
-                    </div>
-                    </div>
-                    <div
-                  className="col-3 "
-                  style={{ padding: 10 }}
-                >
-                  <div className="d-grid gap-2  mb-5">
-                      <Button
-                        variant="outline-dark"
-                        size="sm"
-                        className="mb-2 btn-block"
-                        onClick={(e) => {
-                          const selectedOptions = Array.from(
-                            selectedCourseRef.current.selectedOptions
-                          ).map((option) => option.value);
-                          const reorderedCourses = [...selectedCourse];
-                          for (let i = 0; i < selectedOptions.length; i++) {
-                            const index = reorderedCourses.findIndex(
-                              (course) =>
-                                course === selectedOptions[i]
-                            );
-                            if (index === reorderedCourses.length - 1) continue;
-                            const temp = reorderedCourses[index];
-                            reorderedCourses[index] =
-                              reorderedCourses[reorderedCourses.length - 1];
-                            reorderedCourses[reorderedCourses.length - 1] =
-                              temp;
-                          }
-                          setSelectedCourse(reorderedCourses);
-                          selectedCourseRef.current.selectedIndex = Math.min(
-                            selectedCourseRef.current.options.length - 1,
-                            selectedCourseRef.current.selectedIndex + 1
-                          );
-                        }}
-                      >
-                        Move Bottom
-                      </Button>
                   </div>
                 </div>
-
+                <div className="col-3 " style={{ padding: 10 }}>
+                  <div className="d-grid gap-2  mb-5">
+                    <Button
+                      variant="outline-dark"
+                      size="sm"
+                      className="mb-2 btn-block"
+                      onClick={(e) => {
+                        const selectedOptions = Array.from(
+                          selectedCourseRef.current.selectedOptions
+                        ).map((option) => option.value);
+                        const reorderedCourses = [...selectedCourse];
+                        for (let i = 0; i < selectedOptions.length; i++) {
+                          const index = reorderedCourses.findIndex(
+                            (course) => course === selectedOptions[i]
+                          );
+                          if (index === reorderedCourses.length - 1) continue;
+                          const temp = reorderedCourses[index];
+                          reorderedCourses[index] =
+                            reorderedCourses[reorderedCourses.length - 1];
+                          reorderedCourses[reorderedCourses.length - 1] = temp;
+                        }
+                        setSelectedCourse(reorderedCourses);
+                        selectedCourseRef.current.selectedIndex = Math.min(
+                          selectedCourseRef.current.options.length - 1,
+                          selectedCourseRef.current.selectedIndex + 1
+                        );
+                      }}
+                    >
+                      Move Bottom
+                    </Button>
+                  </div>
+                </div>
               </div>
             </form>
           </Modal.Body>
           <Modal.Footer>
-            <Button
-              variant="outline-dark"
-            >
-              Close
-            </Button>
+            <Button variant="outline-dark">Close</Button>
           </Modal.Footer>
         </Modal>
       )}
 
-
-
-      <div className="row">
-        <div className="col stretch-card grid-margin ">
-          <div
-            className={`card bg-gradient-${status.status < 2
-              ? "secondary"
-              : status.status === 2
-                ? "info"
-                : "success"
-              } card-img-holder text-white`}
-          >
-            <div className="card-body">
-              <img
-                src={
-                  require("../../assets/images/dashboard/circle.svg").default
-                }
-                className="card-img-absolute"
-                alt="circle"
-              />
-              <h4 className="font-weight-normal mb-3">
-                Assign Teachers according to Seniorty{" "}
-                <button
-                  disabled={status.status !== 2}
-                  type="button"
-                  className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3 box box-hover"
-                  onClick={(e) => {
-                    finalize().then((res) => {
-                      getStatus().then((res) => {
-                        setStatus({ values: [], ...res });
-                      });
-                    });
-                  }}
-                >
-                  <i
-                    className={`mdi ${status.status < 2
-                      ? "mdi-cancel"
-                      : status.status === 2
-                        ? "mdi-autorenew"
-                        : "mdi-check"
-                      } mdi-24px float-right`}
-                  ></i>
-                </button>
-              </h4>
-              <h2 className="mb-5">Final Phase</h2>
-              <h6 className="card-text">
-                {
-                  status.status < 2
-                    ? "Only Avaliable when everybody submitted"
-                    : status.status === 2
-                      ? "Click to Assign and Finalize"
-                      : "This Phase is Completed"
-                }
-
-              </h6>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CardWithButton
+        title="Assign Teachers according to Seniorty"
+        subtitle="Final Phase"
+        status={
+          status.status < 2
+            ? "Only Avaliable when everybody submitted"
+            : status.status === 2
+            ? "Click to Assign and Finalize"
+            : "This Phase is Completed"
+        }
+        bgColor={
+          status.status < 2
+            ? "secondary"
+            : status.status === 2
+            ? "info"
+            : "success"
+        }
+        icon={
+          status.status < 2
+            ? "mdi-cancel"
+            : status.status === 2
+            ? "mdi-autorenew"
+            : "mdi-check"
+        }
+        disabled={status.status !== 2}
+        onClick={(e) => {
+          finalize().then((res) => {
+            getStatus().then((res) => {
+              setStatus({ values: [], submitted: [], ...res });
+            });
+          });
+        }}
+      />
     </div>
   );
 }
