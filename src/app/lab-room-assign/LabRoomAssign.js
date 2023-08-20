@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-import { Button, CloseButton } from "react-bootstrap";
+import { Button, CloseButton, Badge } from "react-bootstrap";
 import { toast } from "react-hot-toast";
 
 import { getLabCourses, getLabRooms } from "../api/db-crud";
@@ -14,6 +14,8 @@ export default function LabRoomAssign() {
   ]);
 
   const [savedConstraints, setSavedConstraints] = useState(false);
+  const [viewRoomAssignment, setViewRoomAssignment] = useState(false);
+  const [viewCourseAssignment, setViewCourseAssignment] = useState(false);
 
   const [rooms, setRooms] = useState([
     // { room: "MCL" },
@@ -27,6 +29,7 @@ export default function LabRoomAssign() {
     // { course_id: "CSE 101", rooms: ["MCL", "MML"] },
   ]);
   const [uniqueNamedCourses, setUniqueNamedCourses] = useState([]);
+  const [fixedRoomAllocation, setFixedRoomAllocation] = useState([]);
 
   useEffect(() => {
     getLabRooms().then((res) => {
@@ -55,9 +58,8 @@ export default function LabRoomAssign() {
     // console.log(uniqueNamedCourses);
   }, [offeredCourse]);
 
-  
+  let maxAllowed = Math.ceil(offeredCourse.length / rooms.length);
 
-  const maxAllowed = Math.ceil(offeredCourse.length / rooms.length);
   const roomAlloc = rooms.map((room) => {
     return {
       room: room.room,
@@ -66,36 +68,51 @@ export default function LabRoomAssign() {
     };
   });
 
-  // console.log(roomAlloc);
+  const countMinIndex = (arr) => {
+    let minCount = Infinity;
+    let minIndex = -1;
+
+    // console.log(item.rooms);
+
+    arr.map((room) => {
+      const room_index = rooms.findIndex((r) => r.room === room);
+      // console.log(index, roomAlloc[index].count);
+      if (roomAlloc[room_index].count < minCount) {
+        minCount = roomAlloc[room_index].count;
+        minIndex = room_index;
+      }
+    });
+    return minIndex;
+  };
 
   const labRoomAssignHandler = () => {
     let remainedCourse = offeredCourse;
+    let remainedRoom = rooms;
+    let c = 0;
+
     // for constraints
     courseRoom.map((item) => {
-      let minCount = Infinity;
-      let minIndex = -1;
-
-      // console.log(item.rooms);
-
-      item.rooms.map((room) => {
-        const room_index = rooms.findIndex((r) => r.room === room);
-        // console.log(index, roomAlloc[index].count);
-        if (roomAlloc[room_index].count < minCount) {
-          minCount = roomAlloc[room_index].count;
-          minIndex = room_index;
-        }
-      });
-
+      const minIndex = countMinIndex(item.rooms);
       const courses = offeredCourse.filter(
         (course) => course.course_id === item.course_id
       );
-      remainedCourse = offeredCourse.filter(
+      remainedCourse = remainedCourse.filter(
         (course) => course.course_id !== item.course_id
       );
       // console.log("for ",roomAlloc[room_index].room, minIndex);
       roomAlloc[minIndex].count += courses.length;
       roomAlloc[minIndex].courses.push(...courses);
     });
+
+    roomAlloc.map((room) => {
+      if (room.count >= maxAllowed) {
+        c++;
+        remainedRoom = remainedRoom.filter((r) => r.room !== room.room);
+      }
+    });
+
+    maxAllowed = Math.floor(remainedCourse.length / (rooms.length - c));
+    // console.log(remainedCourse.length,rooms.length,c,maxAllowed);
 
     // console.log(remainedCourse);
 
@@ -111,7 +128,20 @@ export default function LabRoomAssign() {
       }
     });
 
+    // let i = 0;
+
+    while (remainedCourse.length > 0) {
+      const minIndex = countMinIndex(remainedRoom.map((r) => r.room));
+      const course = remainedCourse[0];
+      roomAlloc[minIndex].count += 1;
+      roomAlloc[minIndex].courses.push(course);
+      remainedCourse = remainedCourse.filter((c) => c !== course);
+      remainedRoom = remainedRoom.filter((r) => r.room !== roomAlloc[minIndex].room);
+
+    }
+
     setSavedConstraints(true);
+    setFixedRoomAllocation(roomAlloc);
 
     // lab room assignment in this roomAlloc array
 
@@ -196,16 +226,15 @@ export default function LabRoomAssign() {
                               className="d-flex justify-content-end align-items-center"
                               style={{ padding: 10 }}
                             >
-                              <Button variant="primary" size="sm">
+                              {/* <Button variant="primary" size="sm">
                                 {item.course_id}
-                              </Button>
-                              <CloseButton
-                                style={{
-                                  fontSize: "0.85rem",
-                                  padding: "0.1rem",
-                                  color: "red",
-                                  borderColor: "violet",
-                                }}
+                              </Button> */}
+                              <Badge bg="success" text="light">
+                                {item.course_id}
+                              </Badge>
+                              <button
+                                type="button"
+                                className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3 "
                                 onClick={() => {
                                   setUniqueNamedCourses([
                                     ...uniqueNamedCourses,
@@ -222,37 +251,42 @@ export default function LabRoomAssign() {
                                     )
                                   );
                                 }}
-                              />
+                              >
+                                <i
+                                  className={
+                                    "mdi mdi-close mdi-14px float-right"
+                                  }
+                                ></i>
+                              </button>
                             </div>
                             <div
                               className="d-flex align-items-center"
-                              style={{ padding: 10 }}
+                              style={{ padding: 5 }}
                             >
-                              <h4
+                              <h5
                                 style={{
                                   margin: 0,
                                   fontSize: "1rem",
-                                  color: "violet",
+                                  color: "green",
                                 }}
                               >
                                 Must Use
-                              </h4>
+                              </h5>
                             </div>
                             {item.rooms.map((room, index) => (
                               <div
                                 className="d-flex justify-content-end align-items-center"
                                 style={{ padding: 10 }}
                               >
-                                <Button variant="primary" size="sm">
+                                {/* <Button variant="primary" size="sm">
                                   {room}
-                                </Button>
-                                <CloseButton
-                                  style={{
-                                    fontSize: "0.85rem",
-                                    padding: "0.1rem",
-                                    color: "red",
-                                    borderColor: "violet",
-                                  }}
+                                </Button> */}
+                                <Badge bg="success" text="light">
+                                  {room}
+                                </Badge>
+                                <button
+                                  type="button"
+                                  className="btn btn-rounded btn-light btn-sm float-right position-relative z-index-3 "
                                   onClick={() => {
                                     const updatedRoom = item.rooms.filter(
                                       (r) => r !== room
@@ -283,7 +317,22 @@ export default function LabRoomAssign() {
                                       setCourseRoom(updatedCourseRoom);
                                     }
                                   }}
-                                />
+                                >
+                                  <i
+                                    className={
+                                      "mdi mdi-close mdi-14px float-right"
+                                    }
+                                  ></i>
+                                </button>
+                                {/* <CloseButton
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    padding: "0.1rem",
+                                    color: "red",
+                                    borderColor: "violet",
+                                  }}
+                                  
+                                /> */}
                               </div>
                             ))}
                           </div>
@@ -400,13 +449,179 @@ export default function LabRoomAssign() {
       </div>
       {savedConstraints && (
         <div className="row">
-          <div className="col-12 grid-margin">
+          {!viewRoomAssignment && !viewCourseAssignment && (
+            <div className="col-7 grid-margin">
+              <div className="card">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th> Lab Room </th>
+                          <th> Number of courses </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fixedRoomAllocation.map((room, index) => (
+                          <tr key={index}>
+                            <td> {room.room} </td>
+                            <td> {room.count}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {viewRoomAssignment && !viewCourseAssignment && (
+            <div className="col-7 grid-margin">
+              <div className="card">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th> Lab Room </th>
+                          <th> Assigned Courses </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fixedRoomAllocation.map((room, index) => (
+                          <tr key={index}>
+                            <td> {room.room} </td>
+                            {room.courses.length === 0 ? (
+                              <td> None </td>
+                            ) : (
+                              <td>
+                                <ul>
+                                  {room.courses.map((course, index) => (
+                                    <li key={index}>
+                                      {course.course_id} - {course.name} ({" "}
+                                      {course.level_term} ) {course.section}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {viewCourseAssignment && !viewRoomAssignment && (
+            <div className="col-7 grid-margin">
+              <div className="card">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th> Course ID </th>
+                          <th> Course Name </th>
+                          <th> Level-Term </th>
+                          <th> Section </th>
+                          <th> Assigned Room </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {offeredCourse.map((course, index) => (
+                          <tr key={index}>
+                            <td> {course.course_id} </td>
+                            <td> {course.name} </td>
+                            <td> {course.level_term} </td>
+                            <td> {course.section} </td>
+                            {fixedRoomAllocation.map(
+                              (room, index) =>
+                                room.courses.find(
+                                  (c) =>
+                                    c.course_id === course.course_id &&
+                                    c.section === course.section
+                                ) && <td> {room.room} </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="col-5 grid-margin">
             <div className="card">
               <div className="card-body">
-
-
-
-
+                <div>
+                  <div
+                    className="d-flex justify-content-right"
+                    style={{ marginBottom: 35 }}
+                  >
+                    <Button
+                      variant="outline-success"
+                      size="lg"
+                      className="w-100"
+                      style={{ marginRight: 15 }}
+                      onClick={() => {
+                        setViewRoomAssignment(true);
+                        setViewCourseAssignment(false);
+                      }}
+                    >
+                      View Room Assignment
+                    </Button>
+                    <Button
+                      variant="outline-success"
+                      size="lg"
+                      className="w-100"
+                      style={{ marginRight: 15 }}
+                      onClick={() => {
+                        setViewCourseAssignment(true);
+                        setViewRoomAssignment(false);
+                      }}
+                    >
+                      View Course Assignment
+                    </Button>
+                    <Button
+                      variant="outline-success"
+                      size="lg"
+                      className="w-100"
+                      onClick={() => {
+                        setViewCourseAssignment(false);
+                        setViewRoomAssignment(false);
+                      }}
+                    >
+                      View Statistics
+                    </Button>
+                  </div>
+                  <Button
+                    variant="outline-danger"
+                    size="lg"
+                    className="btn-block w-100"
+                    onClick={() => {
+                      //initialize all states
+                      setSavedConstraints(false);
+                      setViewRoomAssignment(false);
+                      setViewCourseAssignment(false);
+                      setFixedRoomAllocation([]);
+                    }}
+                  >
+                    Reschedule
+                  </Button>
+                </div>
+                <div style={{ marginTop: 150 }}>
+                  <Button
+                    variant="outline-success"
+                    size="lg"
+                    className="btn-block w-100"
+                    onClick={() => {}}
+                  >
+                    Continue With This Assignment
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
