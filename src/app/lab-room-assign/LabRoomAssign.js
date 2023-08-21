@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 
 import { getLabCourses, getLabRooms } from "../api/db-crud";
 import CardWithButton from "../shared/CardWithButton";
+import Genetic from "genetic-js";
 
 export default function LabRoomAssign() {
   const [offeredCourse, setOfferedCourse] = useState([
@@ -86,71 +87,148 @@ export default function LabRoomAssign() {
     return minIndex;
   };
 
-  const labRoomAssignHandler = () => {
-    let remainedCourse = offeredCourse;
-    let remainedRoom = rooms;
-    let c = 0;
+  const geneticAlgorithm = (roomAssignments, rooms) => {
+    const courses = Object.keys(roomAssignments);
+    const genetic = Genetic.create();
+    genetic.select1 = Genetic.Select1.Fittest;
+    genetic.select2 = Genetic.Select2.RandomLinearRank;
+    genetic.optimize = Genetic.Optimize.Minimize;
 
-    // for constraints
-    courseRoom.forEach((item) => {
-      const minIndex = countMinIndex(item.rooms);
-      const courses = offeredCourse.filter(
-        (course) => course.course_id === item.course_id
-      );
-      remainedCourse = remainedCourse.filter(
-        (course) => course.course_id !== item.course_id
-      );
-      // console.log("for ",roomAlloc[room_index].room, minIndex);
-      roomAlloc[minIndex].count += courses.length;
-      roomAlloc[minIndex].courses.push(...courses);
-    });
-
-    roomAlloc.forEach((room) => {
-      if (room.count >= maxAllowed) {
-        c++;
-        remainedRoom = remainedRoom.filter((r) => r.room !== room.room);
-      }
-    });
-
-    maxAllowed = Math.floor(remainedCourse.length / (rooms.length - c));
-    // console.log(remainedCourse.length,rooms.length,c,maxAllowed);
-
-    // console.log(remainedCourse);
-
-    // for remaining courses
-    roomAlloc.forEach((room) => {
-      if (room.count < maxAllowed) {
-        const courses = remainedCourse.splice(0, maxAllowed - room.count);
-        room.count += courses.length;
-        room.courses.push(...courses);
-        remainedCourse = remainedCourse.filter(
-          (course) => !courses.includes(course)
+    genetic.seed = function () {
+      const { courses, roomAssignments } = this.userData;
+      const chromosome = {};
+      courses.forEach((course) => {
+        chromosome[course] = Math.floor(
+          Math.random() * roomAssignments[course].length
         );
-      }
-    });
+        chromosome[course] = roomAssignments[course][chromosome[course]];
+      });
+      return chromosome;
+    };
 
-    // let i = 0;
-
-    while (remainedCourse.length > 0) {
-      const minIndex = countMinIndex(remainedRoom.map((r) => r.room));
-      const course = remainedCourse[0];
-      roomAlloc[minIndex].count += 1;
-      roomAlloc[minIndex].courses.push(course);
-      remainedCourse = remainedCourse.filter((c) => c !== course);
-      remainedRoom = remainedRoom.filter(
-        (r) => r.room !== roomAlloc[minIndex].room
+    genetic.mutate = function (chromosome) {
+      const { courses, roomAssignments } = this.userData;
+      const course = courses[Math.floor(Math.random() * courses.length)];
+      chromosome[course] = Math.floor(
+        Math.random() * roomAssignments[course].length
       );
-    }
+      chromosome[course] = roomAssignments[course][chromosome[course]];
+      if (chromosome[course] === undefined) {
+        console.log(course);
+      }
+      return chromosome;
+    };
 
-    setSavedConstraints(true);
-    setFixedRoomAllocation(roomAlloc);
+    genetic.crossover = function (mother, father) {
+      const { courses } = this.userData;
+      const son = {},
+        daughter = {};
+      courses.forEach((course) => {
+        if (Math.random() < 0.5) {
+          son[course] = mother[course];
+          daughter[course] = father[course];
+        } else {
+          son[course] = father[course];
+          daughter[course] = mother[course];
+        }
+      });
+      return [son, daughter];
+    };
 
-    // lab room assignment in this roomAlloc array
+    genetic.fitness = function (chromosome) {
+      const { courses, rooms } = this.userData;
+      // standard deviation of room used
+      const roomUsed = {};
+      rooms.forEach((room) => (roomUsed[room] = 0));
+      courses.forEach((course) => {
+        roomUsed[chromosome[course]] += 1;
+      });
+      let sum = 0,
+        count = 0;
+      rooms.forEach((room) => {
+        sum += roomUsed[room];
+        count += 1;
+      });
+      const mean = sum / count;
+      let sd = 0;
+      rooms.forEach((room) => {
+        sd += (roomUsed[room] - mean) ** 2;
+      });
+      sd = Math.sqrt(sd / count);
+      return sd;
+    };
 
-    console.log(roomAlloc);
+    // genetic.generation = function (pop, generation, stats) {
+    //   return true;
+    // };
+
+    genetic.notification = function (pop, generation, stats, isFinished) {
+      if (isFinished) {
+        const solution = pop[0].entity;
+        const roomStats = rooms.reduce((map, room) => {
+          map[room] = { room, courses: [], count: 0 };
+          return map;
+        }, {});
+        for (const course in solution) {
+          const room = roomStats[solution[course]];
+          room.courses.push(
+            offeredCourse.find((c) => {
+              const [course_id, section] = course.split(" ");
+              return c.course_id === course_id && c.section === section;
+            })
+          );
+          room.count += 1;
+        }
+        const roomUsed = Object.values(roomStats);
+        console.log(`Finished`);
+        console.log(roomUsed);
+        setSavedConstraints(true);
+        setFixedRoomAllocation(roomUsed);
+      } else {
+        console.log(`Running generation ${generation}`);
+      }
+    };
+
+    const config = {
+      iterations: 1000,
+      size: 100,
+      crossover: 0.3,
+      mutation: 0.3,
+      skip: 20,
+    };
+
+    const userData = {
+      courses,
+      roomAssignments,
+      rooms,
+      offeredCourse,
+    };
+
+    genetic.evolve(config, userData);
   };
 
-  // console.log(uniqueNamedCourses);
+  const labRoomAssignHandler = () => {
+    const roomNameOnly = rooms.map((room) => room.room);
+    const courseNameOnly = offeredCourse.map(
+      (course) => `${course.course_id} ${course.section}`
+    );
+
+    const courseRoomMap = courseRoom.reduce((map, obj) => {
+      map[obj.course_id] = obj.rooms;
+      return map;
+    }, {});
+
+    const allRoomSet = roomNameOnly;
+
+    const possibleRoom = courseNameOnly.reduce((map, course) => {
+      const [course_id, section] = course.split(" ");
+      const roomSet = courseRoomMap[course_id] || allRoomSet;
+      map[course] = roomSet;
+      return map;
+    }, {});
+
+    geneticAlgorithm(possibleRoom, roomNameOnly);
+  };
 
   const selectedCourseRef = useRef();
   const selectedRoomRef = useRef();
@@ -469,9 +547,7 @@ export default function LabRoomAssign() {
             <div className="card">
               <div className="card-body">
                 <div>
-                  <div
-                    className="d-flex justify-content-center flex-column "
-                  >
+                  <div className="d-flex justify-content-center flex-column ">
                     <Button
                       variant={viewRoomAssignment ? "dark" : "outline-dark"}
                       size="sm"
@@ -495,7 +571,11 @@ export default function LabRoomAssign() {
                       View Course Assignment
                     </Button>
                     <Button
-                      variant={!(viewCourseAssignment || viewRoomAssignment) ? "dark" : "outline-dark"}
+                      variant={
+                        !(viewCourseAssignment || viewRoomAssignment)
+                          ? "dark"
+                          : "outline-dark"
+                      }
                       size="sm"
                       className="btn-block mb-3"
                       onClick={() => {
