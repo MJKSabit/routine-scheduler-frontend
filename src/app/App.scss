@@ -163,6 +163,11 @@ input[type="checkbox"].big-checkbox {
     content: "\00d7";
   }
 
+  @extend .btn;
+  @extend .btn-rounded;
+  @extend .btn-sm;
+  @extend .btn-gradient-danger;
+
   // no border
   border-radius: 5px;
 }
