@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-import { Button, CloseButton, Badge } from "react-bootstrap";
+import { Button, CloseButton, Badge, ProgressBar } from "react-bootstrap";
 import { toast } from "react-hot-toast";
 
 import { getLabCourses, getLabRooms } from "../api/db-crud";
 import CardWithButton from "../shared/CardWithButton";
 import Genetic from "genetic-js";
+import { set } from "date-fns";
 
 export default function LabRoomAssign() {
   const [offeredCourse, setOfferedCourse] = useState([
@@ -32,6 +33,8 @@ export default function LabRoomAssign() {
   ]);
   const [uniqueNamedCourses, setUniqueNamedCourses] = useState([]);
   const [fixedRoomAllocation, setFixedRoomAllocation] = useState([]);
+
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     getLabRooms().then((res) => {
@@ -184,9 +187,8 @@ export default function LabRoomAssign() {
         console.log(roomUsed);
         setSavedConstraints(true);
         setFixedRoomAllocation(roomUsed);
-      } else {
-        console.log(`Running generation ${generation}`);
       }
+      setProgress(generation);
     };
 
     const config = {
@@ -419,7 +421,15 @@ export default function LabRoomAssign() {
                     <h5 className="text-right mt-1">Rooms</h5>
                   </div>
                 </div>
-                <div className="d-flex justify-content-end mt-2">
+                <div className="d-flex justify-content-between mt-2 ">
+                  <ProgressBar
+                    variant="success"
+                    now={progress+1}
+                    label={`${progress+1} / 1000 Generations`}
+                    className="flex-grow-1 mt-2 mr-5"
+                    style={{ height: "2rem" }}
+                    max={1000}
+                  />
                   <Button
                     variant="success"
                     size="lg"
@@ -596,6 +606,7 @@ export default function LabRoomAssign() {
                       setViewRoomAssignment(false);
                       setViewCourseAssignment(false);
                       setFixedRoomAllocation([]);
+                      setProgress(-1);
                     }}
                   >
                     Reschedule
