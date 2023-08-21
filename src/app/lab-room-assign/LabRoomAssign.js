@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, CloseButton, Badge } from "react-bootstrap";
 import { toast } from "react-hot-toast";
 
-import { getLabCourses, getLabRooms } from "../api/db-crud";
+import { getLabCourses, getLabRooms , assignLabRooms } from "../api/db-crud";
 
 export default function LabRoomAssign() {
   const [offeredCourse, setOfferedCourse] = useState([
@@ -145,10 +145,32 @@ export default function LabRoomAssign() {
 
     // lab room assignment in this roomAlloc array
 
-    console.log(roomAlloc);
+    // console.log(roomAlloc);
   };
 
-  // console.log(uniqueNamedCourses);
+  const finalAssignHandler = () => {
+    const finalCourseRooms = [];
+
+    offeredCourse.map((course) => {
+      finalCourseRooms.push({
+        course_id: course.course_id,
+        section: course.section,
+        room: fixedRoomAllocation.find((room) =>
+          room.courses.find(
+            (c) => c.course_id === course.course_id && c.section === course.section
+         )).room
+      });
+      
+    });
+  
+    // console.log("final",finalCourseRooms);
+
+    assignLabRooms(finalCourseRooms).then((res) => {
+      toast.success("Lab Room Assignment Successful");
+    }).catch(console.log);
+
+  };
+
 
   const selectedCourseRef = useRef();
   const selectedRoomRef = useRef();
@@ -617,7 +639,7 @@ export default function LabRoomAssign() {
                     variant="outline-success"
                     size="lg"
                     className="btn-block w-100"
-                    onClick={() => {}}
+                    onClick={finalAssignHandler}
                   >
                     Continue With This Assignment
                   </Button>

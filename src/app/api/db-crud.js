@@ -48,9 +48,11 @@ export const deleteSection = (batch,section) =>
 
 
 export const getLabRooms = () =>
-  axios.get(api_url("/room/labs")).then((res) => res.data);
+  axios.get(api_url("/labroomassign/room")).then((res) => res.data);
 export const getLabCourses = () =>
-  axios.get(api_url("/course/labs")).then((res) => res.data);
+  axios.get(api_url("/labroomassign/course")).then((res) => res.data);
+export const assignLabRooms = (courseRooms) =>
+  axios.put(api_url("/labroomassign/assign"), courseRooms).then((res) => res.data);
  
 
 
