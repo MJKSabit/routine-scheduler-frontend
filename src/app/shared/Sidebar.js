@@ -135,6 +135,12 @@ class Sidebar extends Component {
               <i className="mdi mdi-file-pdf-box menu-icon"></i>
             </Link>
           </li>
+          <li className={ this.isPathActive('/fahad') ? 'nav-item active' : 'nav-item' }>
+            <Link className="nav-link" to="/fahad">
+              <span className="menu-title">Fahad</span>
+              <i className="mdi mdi-bomb menu-icon"></i>
+            </Link>
+          </li>
         </ul>
       </nav>
     );
