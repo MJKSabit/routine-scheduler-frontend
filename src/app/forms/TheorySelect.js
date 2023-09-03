@@ -54,7 +54,7 @@ export default function TheorySelect() {
                 <div className="row">
                   <div className="col-5" style={{ padding: 10 }}>
                     <select
-                      class="form-select"
+                      class="form-select text-dark"
                       multiple
                       aria-label="multiple select example"
                       style={{ height: 400, width: "100%" }}
@@ -258,7 +258,7 @@ export default function TheorySelect() {
                   </div>
                   <div className="col-5" style={{ padding: 10 }}>
                     <select
-                      class="form-select"
+                      class="form-select text-dark"
                       multiple
                       aria-label="multiple select example"
                       style={{ height: 400, width: "100%" }}

@@ -50,6 +50,7 @@ export default function Sections() {
   //     type: "Theory",
   //     room: "203",
   //     session: "January 2023",
+  //     level_term: "L1-T1",
   //   },
   // ];
 
@@ -115,6 +116,7 @@ export default function Sections() {
                   <thead>
                     <tr>
                       <th> Batch </th>
+                      <th> Level-Term </th>
                       <th> Section </th>
                       <th> Type </th>
                       <th> Room </th>
@@ -125,6 +127,7 @@ export default function Sections() {
                     {sections.map((section, index) => (
                       <tr key={index}>
                         <td> {section.batch} </td>
+                        <td> {section.level_term} </td>
                         <td> {section.section} </td>
                         <td> {section.type===0? "Theory":"Sessional"} </td>
                         <td> {section.room} </td>
@@ -272,6 +275,22 @@ export default function Sections() {
                     >
                       <option value="0">{sessionValue[0]}</option>
                     </Form.Select>
+                  </FormGroup>
+                </Col>
+                <Col md={4} className="px-2 py-1">
+                  <FormGroup>
+                    <Form.Label>Level-Term</Form.Label>
+                    <FormControl
+                      type="text"
+                      placeholder="L_-T_"
+                      value={selectedSection.level_term}
+                      onChange={(e) =>
+                        setSelectedSection({
+                          ...selectedSection,
+                          level_term: e.target.value,
+                        })
+                      }
+                    />
                   </FormGroup>
                 </Col>
               </Row>
