@@ -7,7 +7,6 @@ import { toast } from "react-hot-toast";
 import { getLabCourses, getLabRooms } from "../api/db-crud";
 import CardWithButton from "../shared/CardWithButton";
 import Genetic from "genetic-js";
-import { set } from "date-fns";
 
 export default function LabRoomAssign() {
   const [offeredCourse, setOfferedCourse] = useState([
