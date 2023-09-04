@@ -18,6 +18,7 @@ export default function LabRoomAssign() {
   const [savedConstraints, setSavedConstraints] = useState(false);
   const [viewRoomAssignment, setViewRoomAssignment] = useState(false);
   const [viewCourseAssignment, setViewCourseAssignment] = useState(false);
+  const [viewLevelTermAssignment, setViewLevelTermAssignment] = useState(false);
 
   const [rooms, setRooms] = useState([
     // { room: "MCL" },
@@ -234,6 +235,32 @@ export default function LabRoomAssign() {
   const selectedCourseRef = useRef();
   const selectedRoomRef = useRef();
 
+  const levelTermAllocation = fixedRoomAllocation.reduce((map, room) => {
+    room.courses.forEach((course) => {
+      const { level_term } = course;
+      if (!map[level_term]) 
+        map[level_term] = new Set();
+      map[level_term].add(room.room);
+    });
+    return map;
+  }, {})
+
+  const levelTermAllocationArray = Object.keys(levelTermAllocation).map(level_term => {
+    return {
+      level_term,
+      rooms: Array.from(levelTermAllocation[level_term])
+    }
+  }).sort((a, b) => {
+    return a.level_term.localeCompare(b.level_term);
+  })
+
+  // .reduce((arr, room, level_term) => {
+  //   arr.push({ level_term, rooms: Array.from(room) });
+  //   return arr;
+  // }, []);
+
+  // console.log(levelTermAllocationArray);
+
   return (
     <div>
       <div className="page-header">
@@ -446,7 +473,7 @@ export default function LabRoomAssign() {
 
       {savedConstraints && (
         <div className="row">
-          {!viewRoomAssignment && !viewCourseAssignment && (
+          {!viewLevelTermAssignment && !viewRoomAssignment && !viewCourseAssignment && (
             <div className="col-7 grid-margin">
               <div className="card">
                 <div className="card-body">
@@ -473,7 +500,7 @@ export default function LabRoomAssign() {
             </div>
           )}
 
-          {viewRoomAssignment && !viewCourseAssignment && (
+          {!viewLevelTermAssignment && viewRoomAssignment && !viewCourseAssignment && (
             <div className="col-7 grid-margin">
               <div className="card">
                 <div className="card-body">
@@ -513,7 +540,7 @@ export default function LabRoomAssign() {
             </div>
           )}
 
-          {viewCourseAssignment && !viewRoomAssignment && (
+          {!viewLevelTermAssignment && viewCourseAssignment && !viewRoomAssignment && (
             <div className="col-7 grid-margin">
               <div className="card">
                 <div className="card-body">
@@ -552,36 +579,78 @@ export default function LabRoomAssign() {
               </div>
             </div>
           )}
+
+          {viewLevelTermAssignment && (
+            <div className="col-7 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <div className="table-responsive">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th> Level-Term </th>
+                        <th> Used Labs </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {levelTermAllocationArray.map((lt, index) => (
+                        <tr key={index}>
+                          <td> {lt.level_term} </td>
+                          {lt.rooms.length === 0 ? (
+                            <td> None </td>
+                          ) : (
+                            <td>
+                              <ul>
+                                {lt.rooms.map((room, index) => (
+                                  <li key={index}>
+                                    {room}
+                                  </li>
+                                ))}
+                              </ul>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          )}
+
           <div className="col-5 grid-margin">
             <div className="card">
               <div className="card-body">
                 <div>
                   <div className="d-flex justify-content-center flex-column ">
                     <Button
-                      variant={viewRoomAssignment ? "dark" : "outline-dark"}
+                      variant={!viewLevelTermAssignment && viewRoomAssignment ? "dark" : "outline-dark"}
                       size="sm"
                       className="btn-block mb-3"
                       onClick={() => {
                         setViewRoomAssignment(true);
                         setViewCourseAssignment(false);
+                        setViewLevelTermAssignment(false);
                       }}
                     >
                       View Room Assignment
                     </Button>
                     <Button
-                      variant={viewCourseAssignment ? "dark" : "outline-dark"}
+                      variant={!viewLevelTermAssignment && viewCourseAssignment ? "dark" : "outline-dark"}
                       size="sm"
                       className="btn-block mb-3"
                       onClick={() => {
                         setViewCourseAssignment(true);
                         setViewRoomAssignment(false);
+                        setViewLevelTermAssignment(false);
                       }}
                     >
                       View Course Assignment
                     </Button>
                     <Button
                       variant={
-                        !(viewCourseAssignment || viewRoomAssignment)
+                        !viewLevelTermAssignment && !(viewCourseAssignment || viewRoomAssignment)
                           ? "dark"
                           : "outline-dark"
                       }
@@ -590,9 +659,22 @@ export default function LabRoomAssign() {
                       onClick={() => {
                         setViewCourseAssignment(false);
                         setViewRoomAssignment(false);
+                        setViewLevelTermAssignment(false);
                       }}
                     >
                       View Statistics
+                    </Button>
+                    <Button
+                      variant={viewLevelTermAssignment ? "dark" : "outline-dark"}
+                      size="sm"
+                      className="btn-block mb-3"
+                      onClick={() => {
+                        setViewLevelTermAssignment(true);
+                        setViewCourseAssignment(false);
+                        setViewRoomAssignment(false);
+                      }}
+                    >
+                      View Level-Term Assignment
                     </Button>
                   </div>
                   <Button
