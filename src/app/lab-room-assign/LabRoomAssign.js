@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Button, CloseButton, Badge, ProgressBar } from "react-bootstrap";
 import { toast } from "react-hot-toast";
 
-import { getLabCourses, getLabRooms } from "../api/db-crud";
+import { getLabCourses, getLabRooms, getRoom } from "../api/db-crud";
 import CardWithButton from "../shared/CardWithButton";
 import Genetic from "genetic-js";
+import { getRoomAssign, setRoomAssign } from "../api/theory-assign";
 
 export default function LabRoomAssign() {
   const [offeredCourse, setOfferedCourse] = useState([
@@ -36,14 +37,45 @@ export default function LabRoomAssign() {
 
   const [progress, setProgress] = useState(0);
 
+  const [alreadySaved, setAlreadySaved] = useState(false);
+  const [backendData, setBackendData] = useState([]);
+
   useEffect(() => {
-    getLabRooms().then((res) => {
+    let rooms_, courses_;
+    const labs = getLabRooms().then((res) => {
       // console.log(res);
+      rooms_ = res;
       setRooms(res);
     });
-    getLabCourses().then((res) => {
+    const courses = getLabCourses().then((res) => {
       // console.log(res);
+      courses_ = res;
       setOfferedCourse(res);
+    });
+
+    Promise.all([labs, courses]).then(() => {
+      getRoomAssign().then((res) => {
+        setBackendData(res);
+        if (res.length > 0) {
+          setAlreadySaved(true);
+          const labRooms = rooms_.map((room) => {
+            const courses = res
+              .filter((obj) => obj.room === room.room)
+              .map((obj) => {
+                return courses_.find(
+                  (course) => course.course_id === obj.course_id
+                );
+              });
+            return {
+              room: room.room,
+              count: courses.length,
+              courses: courses,
+            };
+          });
+          setFixedRoomAllocation(labRooms);
+          setSavedConstraints(true);
+        } else setAlreadySaved(false);
+      });
     });
   }, []);
 
@@ -238,21 +270,22 @@ export default function LabRoomAssign() {
   const levelTermAllocation = fixedRoomAllocation.reduce((map, room) => {
     room.courses.forEach((course) => {
       const { level_term } = course;
-      if (!map[level_term]) 
-        map[level_term] = new Set();
+      if (!map[level_term]) map[level_term] = new Set();
       map[level_term].add(room.room);
     });
     return map;
-  }, {})
+  }, {});
 
-  const levelTermAllocationArray = Object.keys(levelTermAllocation).map(level_term => {
-    return {
-      level_term,
-      rooms: Array.from(levelTermAllocation[level_term])
-    }
-  }).sort((a, b) => {
-    return a.level_term.localeCompare(b.level_term);
-  })
+  const levelTermAllocationArray = Object.keys(levelTermAllocation)
+    .map((level_term) => {
+      return {
+        level_term,
+        rooms: Array.from(levelTermAllocation[level_term]),
+      };
+    })
+    .sort((a, b) => {
+      return a.level_term.localeCompare(b.level_term);
+    });
 
   // .reduce((arr, room, level_term) => {
   //   arr.push({ level_term, rooms: Array.from(room) });
@@ -277,230 +310,319 @@ export default function LabRoomAssign() {
         different lab rooms"
         subtitle="Initial Phase"
         status="In Progress"
-        bgColor={"success"}
+        bgColor={alreadySaved ? "success" : "info"}
         icon={"mdi-autorenew"}
         disabled={true}
         onClick={(e) => {}}
       />
 
-      <div className="row">
-        <div className="col-12 grid-margin">
-          <div className="card">
-            <div className="card-body">
-              <h4 className="card-title">Sessional Constraints</h4>
-              <div className="border border-dark rounded btn-block p-3">
-                {courseRoom.map((item, index) => (
-                  <span
-                    className="d-inline-block border border-secondary m-1"
-                    key={index}
-                  >
-                    <Badge bg="info" text="light" className="mr-1">
-                      {item.course_id}
-                    </Badge>
-                    {item.rooms.map((room, index) => (
-                      <>
-                        <Badge bg="primary" text="light" className="ml-1">
-                          {room}
-                        </Badge>
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          style={{ padding: "0.1rem" }}
-                          onClick={() => {
-                            const updatedRoom = item.rooms.filter(
-                              (r) => r !== room
-                            );
-                            if (updatedRoom.length === 0) {
-                              setCourseRoom(
-                                courseRoom.filter(
+      {!alreadySaved && (
+        <div className="row">
+          <div className="col-12 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <h4 className="card-title">Sessional Constraints</h4>
+                <div className="border border-dark rounded btn-block p-3">
+                  {courseRoom.map((item, index) => (
+                    <span
+                      className="d-inline-block border border-secondary m-1"
+                      key={index}
+                    >
+                      <Badge bg="info" text="light" className="mr-1">
+                        {item.course_id}
+                      </Badge>
+                      {item.rooms.map((room, index) => (
+                        <>
+                          <Badge bg="primary" text="light" className="ml-1">
+                            {room}
+                          </Badge>
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            style={{ padding: "0.1rem" }}
+                            onClick={() => {
+                              const updatedRoom = item.rooms.filter(
+                                (r) => r !== room
+                              );
+                              if (updatedRoom.length === 0) {
+                                setCourseRoom(
+                                  courseRoom.filter(
+                                    (course) =>
+                                      course.course_id !== item.course_id
+                                  )
+                                );
+
+                                setUniqueNamedCourses([
+                                  ...uniqueNamedCourses,
+                                  offeredCourse.find(
+                                    (course) =>
+                                      course.course_id === item.course_id
+                                  ),
+                                ]);
+                              } else {
+                                const index = courseRoom.findIndex(
                                   (course) =>
-                                    course.course_id !== item.course_id
+                                    course.course_id === item.course_id
+                                );
+                                const updatedCourseRoom = [...courseRoom];
+                                updatedCourseRoom[index].rooms = updatedRoom;
+                                setCourseRoom(updatedCourseRoom);
+                              }
+                            }}
+                          >
+                            <i className="mdi mdi-close mdi-14px"></i>
+                          </button>
+                        </>
+                      ))}
+
+                      <button
+                        className="btn btn-sm btn-danger ml-2"
+                        style={{ padding: "0.1rem" }}
+                        onClick={() => {
+                          setUniqueNamedCourses([
+                            ...uniqueNamedCourses,
+                            offeredCourse.find(
+                              (course) => course.course_id === item.course_id
+                            ),
+                          ]);
+                          setCourseRoom(
+                            courseRoom.filter(
+                              (course) => course.course_id !== item.course_id
+                            )
+                          );
+                        }}
+                      >
+                        <i className="mdi mdi-close mdi-14px"></i>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <form className="mt-3">
+                  <div className="row align-items-end">
+                    <div className="col-5">
+                      <select
+                        class="form-select text-dark"
+                        multiple
+                        aria-label="multiple select example"
+                        style={{ height: 300, width: "100%" }}
+                        ref={selectedCourseRef}
+                      >
+                        {uniqueNamedCourses.map((course) => (
+                          <option className="p-1" value={course.course_id}>
+                            {course.course_id} - {course.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <h5 className="text-end mt-2">Courses</h5>
+                    </div>
+
+                    <div className="col-2 d-flex flex-column justify-content-between p-1 mb-4">
+                      <div className="d-grid gap-5 mt-5">
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          className="btn-block"
+                          onClick={(e) => {
+                            const selectedCourseOptions = Array.from(
+                              selectedCourseRef.current.selectedOptions
+                            )
+                              .map((option) => option.value)
+                              .map((course_id) =>
+                                uniqueNamedCourses.find(
+                                  (course) => course.course_id === course_id
                                 )
                               );
 
-                              setUniqueNamedCourses([
-                                ...uniqueNamedCourses,
-                                offeredCourse.find(
-                                  (course) =>
-                                    course.course_id === item.course_id
-                                ),
-                              ]);
-                            } else {
-                              const index = courseRoom.findIndex(
-                                (course) => course.course_id === item.course_id
+                            const selectedRoomOptions = Array.from(
+                              selectedRoomRef.current.selectedOptions
+                            )
+                              .map((option) => option.value)
+                              .map((room_id) =>
+                                rooms.find((room) => room.room === room_id)
                               );
-                              const updatedCourseRoom = [...courseRoom];
-                              updatedCourseRoom[index].rooms = updatedRoom;
-                              setCourseRoom(updatedCourseRoom);
-                            }
+
+                            selectedCourseOptions.map((course) => {
+                              setUniqueNamedCourses(
+                                uniqueNamedCourses.filter(
+                                  (c) => c.course_id !== course.course_id
+                                )
+                              );
+
+                              setCourseRoom([
+                                ...courseRoom,
+                                {
+                                  course_id: course.course_id,
+                                  rooms: selectedRoomOptions.map(
+                                    (room) => room.room
+                                  ),
+                                },
+                              ]);
+                            });
                           }}
                         >
-                          <i className="mdi mdi-close mdi-14px"></i>
-                        </button>
-                      </>
-                    ))}
+                          MUST USE
+                        </Button>
+                      </div>
+                    </div>
 
-                    <button
-                      className="btn btn-sm btn-danger ml-2"
-                      style={{ padding: "0.1rem" }}
-                      onClick={() => {
-                        setUniqueNamedCourses([
-                          ...uniqueNamedCourses,
-                          offeredCourse.find(
-                            (course) => course.course_id === item.course_id
-                          ),
-                        ]);
-                        setCourseRoom(
-                          courseRoom.filter(
-                            (course) => course.course_id !== item.course_id
-                          )
-                        );
-                      }}
-                    >
-                      <i className="mdi mdi-close mdi-14px"></i>
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <form className="mt-3">
-                <div className="row align-items-end">
-                  <div className="col-5">
-                    <select
-                      class="form-select text-dark"
-                      multiple
-                      aria-label="multiple select example"
-                      style={{ height: 300, width: "100%" }}
-                      ref={selectedCourseRef}
-                    >
-                      {uniqueNamedCourses.map((course) => (
-                        <option className="p-1" value={course.course_id}>
-                          {course.course_id} - {course.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    <h5 className="text-end mt-2">Courses</h5>
-                  </div>
-
-                  <div className="col-2 d-flex flex-column justify-content-between p-1 mb-4">
-                    <div className="d-grid gap-5 mt-5">
-                      <Button
-                        variant="outline-success"
-                        size="sm"
-                        className="btn-block"
-                        onClick={(e) => {
-                          const selectedCourseOptions = Array.from(
-                            selectedCourseRef.current.selectedOptions
-                          )
-                            .map((option) => option.value)
-                            .map((course_id) =>
-                              uniqueNamedCourses.find(
-                                (course) => course.course_id === course_id
-                              )
-                            );
-
-                          const selectedRoomOptions = Array.from(
-                            selectedRoomRef.current.selectedOptions
-                          )
-                            .map((option) => option.value)
-                            .map((room_id) =>
-                              rooms.find((room) => room.room === room_id)
-                            );
-
-                          selectedCourseOptions.map((course) => {
-                            setUniqueNamedCourses(
-                              uniqueNamedCourses.filter(
-                                (c) => c.course_id !== course.course_id
-                              )
-                            );
-
-                            setCourseRoom([
-                              ...courseRoom,
-                              {
-                                course_id: course.course_id,
-                                rooms: selectedRoomOptions.map(
-                                  (room) => room.room
-                                ),
-                              },
-                            ]);
-                          });
-                        }}
+                    <div className="col-5">
+                      <select
+                        class="form-select text-dark"
+                        multiple
+                        aria-label="multiple select example"
+                        style={{ height: 300, width: "100%" }}
+                        ref={selectedRoomRef}
                       >
-                        MUST USE
-                      </Button>
+                        {rooms.map((room) => (
+                          <option className="p-1" value={room.room}>
+                            {room.room}
+                          </option>
+                        ))}
+                      </select>
+                      <h5 className="text-right mt-1">Rooms</h5>
                     </div>
                   </div>
-
-                  <div className="col-5">
-                    <select
-                      class="form-select text-dark"
-                      multiple
-                      aria-label="multiple select example"
-                      style={{ height: 300, width: "100%" }}
-                      ref={selectedRoomRef}
+                  <div className="d-flex justify-content-between mt-2 ">
+                    <ProgressBar
+                      variant="success"
+                      now={progress + 1}
+                      label={`${progress + 1} / 1000 Generations`}
+                      className="flex-grow-1 mt-2 mr-5"
+                      style={{ height: "2rem" }}
+                      max={1000}
+                    />
+                    <Button
+                      variant="success"
+                      size="lg"
+                      className="mb-2 btn-rounded"
+                      onClick={labRoomAssignHandler}
                     >
-                      {rooms.map((room) => (
-                        <option className="p-1" value={room.room}>
-                          {room.room}
-                        </option>
-                      ))}
-                    </select>
-                    <h5 className="text-right mt-1">Rooms</h5>
+                      Generate Lab Room Assignment
+                    </Button>
                   </div>
-                </div>
-                <div className="d-flex justify-content-between mt-2 ">
-                  <ProgressBar
-                    variant="success"
-                    now={progress+1}
-                    label={`${progress+1} / 1000 Generations`}
-                    className="flex-grow-1 mt-2 mr-5"
-                    style={{ height: "2rem" }}
-                    max={1000}
-                  />
-                  <Button
-                    variant="success"
-                    size="lg"
-                    className="mb-2 btn-rounded"
-                    onClick={labRoomAssignHandler}
-                  >
-                    Generate Lab Room Assignment
-                  </Button>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {savedConstraints && (
         <div className="row">
-          {!viewLevelTermAssignment && !viewRoomAssignment && !viewCourseAssignment && (
-            <div className="col-7 grid-margin">
-              <div className="card">
-                <div className="card-body">
-                  <div className="table-responsive">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th> Lab Room </th>
-                          <th> Number of courses </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {fixedRoomAllocation.map((room, index) => (
-                          <tr key={index}>
-                            <td> {room.room} </td>
-                            <td> {room.count}</td>
+          {!viewLevelTermAssignment &&
+            !viewRoomAssignment &&
+            !viewCourseAssignment && (
+              <div className="col-7 grid-margin">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th> Lab Room </th>
+                            <th> Number of courses </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {fixedRoomAllocation.map((room, index) => (
+                            <tr key={index}>
+                              <td> {room.room} </td>
+                              <td> {room.count}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {!viewLevelTermAssignment && viewRoomAssignment && !viewCourseAssignment && (
+          {!viewLevelTermAssignment &&
+            viewRoomAssignment &&
+            !viewCourseAssignment && (
+              <div className="col-7 grid-margin">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th> Lab Room </th>
+                            <th> Assigned Courses </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {fixedRoomAllocation.map((room, index) => (
+                            <tr key={index}>
+                              <td> {room.room} </td>
+                              {room.courses.length === 0 ? (
+                                <td> None </td>
+                              ) : (
+                                <td>
+                                  <ul>
+                                    {room.courses.map((course, index) => (
+                                      <li key={index}>
+                                        {course.course_id} - {course.name} ({" "}
+                                        {course.level_term} ) {course.section}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {!viewLevelTermAssignment &&
+            viewCourseAssignment &&
+            !viewRoomAssignment && (
+              <div className="col-7 grid-margin">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th> Course ID </th>
+                            <th> Course Name </th>
+                            <th> Level-Term </th>
+                            <th> Section </th>
+                            <th> Assigned Room </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {offeredCourse.map((course, index) => (
+                            <tr key={index}>
+                              <td> {course.course_id} </td>
+                              <td> {course.name} </td>
+                              <td> {course.level_term} </td>
+                              <td> {course.section} </td>
+                              {fixedRoomAllocation.map(
+                                (room, index) =>
+                                  room.courses.find(
+                                    (c) =>
+                                      c.course_id === course.course_id &&
+                                      c.section === course.section
+                                  ) && <td> {room.room} </td>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {viewLevelTermAssignment && (
             <div className="col-7 grid-margin">
               <div className="card">
                 <div className="card-body">
@@ -508,24 +630,21 @@ export default function LabRoomAssign() {
                     <table className="table">
                       <thead>
                         <tr>
-                          <th> Lab Room </th>
-                          <th> Assigned Courses </th>
+                          <th> Level-Term </th>
+                          <th> Used Labs </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {fixedRoomAllocation.map((room, index) => (
+                        {levelTermAllocationArray.map((lt, index) => (
                           <tr key={index}>
-                            <td> {room.room} </td>
-                            {room.courses.length === 0 ? (
+                            <td> {lt.level_term} </td>
+                            {lt.rooms.length === 0 ? (
                               <td> None </td>
                             ) : (
                               <td>
                                 <ul>
-                                  {room.courses.map((course, index) => (
-                                    <li key={index}>
-                                      {course.course_id} - {course.name} ({" "}
-                                      {course.level_term} ) {course.section}
-                                    </li>
+                                  {lt.rooms.map((room, index) => (
+                                    <li key={index}>{room}</li>
                                   ))}
                                 </ul>
                               </td>
@@ -540,92 +659,17 @@ export default function LabRoomAssign() {
             </div>
           )}
 
-          {!viewLevelTermAssignment && viewCourseAssignment && !viewRoomAssignment && (
-            <div className="col-7 grid-margin">
-              <div className="card">
-                <div className="card-body">
-                  <div className="table-responsive">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th> Course ID </th>
-                          <th> Course Name </th>
-                          <th> Level-Term </th>
-                          <th> Section </th>
-                          <th> Assigned Room </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {offeredCourse.map((course, index) => (
-                          <tr key={index}>
-                            <td> {course.course_id} </td>
-                            <td> {course.name} </td>
-                            <td> {course.level_term} </td>
-                            <td> {course.section} </td>
-                            {fixedRoomAllocation.map(
-                              (room, index) =>
-                                room.courses.find(
-                                  (c) =>
-                                    c.course_id === course.course_id &&
-                                    c.section === course.section
-                                ) && <td> {room.room} </td>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {viewLevelTermAssignment && (
-            <div className="col-7 grid-margin">
-            <div className="card">
-              <div className="card-body">
-                <div className="table-responsive">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th> Level-Term </th>
-                        <th> Used Labs </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {levelTermAllocationArray.map((lt, index) => (
-                        <tr key={index}>
-                          <td> {lt.level_term} </td>
-                          {lt.rooms.length === 0 ? (
-                            <td> None </td>
-                          ) : (
-                            <td>
-                              <ul>
-                                {lt.rooms.map((room, index) => (
-                                  <li key={index}>
-                                    {room}
-                                  </li>
-                                ))}
-                              </ul>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          )}
-
           <div className="col-5 grid-margin">
             <div className="card">
               <div className="card-body">
                 <div>
                   <div className="d-flex justify-content-center flex-column ">
                     <Button
-                      variant={!viewLevelTermAssignment && viewRoomAssignment ? "dark" : "outline-dark"}
+                      variant={
+                        !viewLevelTermAssignment && viewRoomAssignment
+                          ? "dark"
+                          : "outline-dark"
+                      }
                       size="sm"
                       className="btn-block mb-3"
                       onClick={() => {
@@ -637,7 +681,11 @@ export default function LabRoomAssign() {
                       View Room Assignment
                     </Button>
                     <Button
-                      variant={!viewLevelTermAssignment && viewCourseAssignment ? "dark" : "outline-dark"}
+                      variant={
+                        !viewLevelTermAssignment && viewCourseAssignment
+                          ? "dark"
+                          : "outline-dark"
+                      }
                       size="sm"
                       className="btn-block mb-3"
                       onClick={() => {
@@ -650,7 +698,8 @@ export default function LabRoomAssign() {
                     </Button>
                     <Button
                       variant={
-                        !viewLevelTermAssignment && !(viewCourseAssignment || viewRoomAssignment)
+                        !viewLevelTermAssignment &&
+                        !(viewCourseAssignment || viewRoomAssignment)
                           ? "dark"
                           : "outline-dark"
                       }
@@ -665,7 +714,9 @@ export default function LabRoomAssign() {
                       View Statistics
                     </Button>
                     <Button
-                      variant={viewLevelTermAssignment ? "dark" : "outline-dark"}
+                      variant={
+                        viewLevelTermAssignment ? "dark" : "outline-dark"
+                      }
                       size="sm"
                       className="btn-block mb-3"
                       onClick={() => {
@@ -698,7 +749,23 @@ export default function LabRoomAssign() {
                     variant="success"
                     size="md"
                     className="btn-block btn-rounded"
-                    onClick={() => {}}
+                    onClick={() => {
+                      const data = [];
+                      fixedRoomAllocation.forEach((room) => {
+                        room.courses.forEach((course) => {
+                          data.push({
+                            course_id: course.course_id,
+                            batch: course.batch,
+                            section: course.section,
+                            room: room.room,
+                          });
+                        });
+                      });
+                      setRoomAssign(data).then((res) => {
+                        toast.success("Lab Room Assignment Saved");
+                        setAlreadySaved(true);
+                      });
+                    }}
                   >
                     Continue With This Assignment
                   </Button>
