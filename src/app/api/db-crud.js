@@ -54,3 +54,10 @@ export const getLabCourses = () =>
  
 
 
+//send to db
+export const sendFahadTest = (data) =>
+  axios.post(api_url("/send/fahad"), data).then((res) => res.data);
+
+  export const sendData = (data) =>
+  axios.post(api_url("/send/lab"), data).then((res) => res.data);
+

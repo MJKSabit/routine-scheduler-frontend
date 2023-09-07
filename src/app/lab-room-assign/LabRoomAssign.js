@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, CloseButton, Badge, ProgressBar } from "react-bootstrap";
 import { toast } from "react-hot-toast";
 
-import { getLabCourses, getLabRooms } from "../api/db-crud";
+import { getLabCourses, getLabRooms, sendData } from "../api/db-crud";
 import CardWithButton from "../shared/CardWithButton";
 import Genetic from "genetic-js";
 
@@ -18,6 +18,52 @@ export default function LabRoomAssign() {
   const [savedConstraints, setSavedConstraints] = useState(false);
   const [viewRoomAssignment, setViewRoomAssignment] = useState(false);
   const [viewCourseAssignment, setViewCourseAssignment] = useState(false);
+  const [responseLab, setResponseLab] = useState([])
+
+  const [level_term, setLevelTerm] = useState([])
+
+  let lvlterm = []
+  const handlelvlterm = () => {
+    console.log("clicked")
+    //a object with lvlterm and array of rooms
+    //let lvlterm = []
+    var allock;
+    //console.log(fixedRoomAllocation)
+    if (fixedRoomAllocation) {
+      allock = fixedRoomAllocation
+    }
+
+    //loop eachroomalloc
+    for (let i = 0; i < fixedRoomAllocation.length; i++) {
+      let room = fixedRoomAllocation[i].room
+      for (let j = 0; j < fixedRoomAllocation[i].courses.length; j++) {
+        //console.log(fixedRoomAllocation[i].courses[j].level_term)
+        let lvl = fixedRoomAllocation[i].courses[j].level_term
+        let c = {
+          room: room,
+          lvl: lvl
+        }
+        lvlterm.push(c)
+      }
+    }
+
+    console.log(lvlterm)
+
+    sendData({
+      fixedRoomAllocation
+    })
+      .then((res) => {
+        setResponseLab(res)
+        toast.success("success");
+      })
+      .catch((err) => {
+        toast.error("error");
+      });
+
+    console.log(responseLab)
+
+
+  }
 
   const [rooms, setRooms] = useState([
     // { room: "MCL" },
@@ -71,6 +117,8 @@ export default function LabRoomAssign() {
       courses: [],
     };
   });
+
+
 
   const countMinIndex = (arr) => {
     let minCount = Infinity;
@@ -253,7 +301,7 @@ export default function LabRoomAssign() {
         bgColor={"success"}
         icon={"mdi-autorenew"}
         disabled={true}
-        onClick={(e) => {}}
+        onClick={(e) => { }}
       />
 
       <div className="row">
@@ -423,8 +471,8 @@ export default function LabRoomAssign() {
                 <div className="d-flex justify-content-between mt-2 ">
                   <ProgressBar
                     variant="success"
-                    now={progress+1}
-                    label={`${progress+1} / 1000 Generations`}
+                    now={progress + 1}
+                    label={`${progress + 1} / 1000 Generations`}
                     className="flex-grow-1 mt-2 mr-5"
                     style={{ height: "2rem" }}
                     max={1000}
@@ -436,6 +484,11 @@ export default function LabRoomAssign() {
                     onClick={labRoomAssignHandler}
                   >
                     Generate Lab Room Assignment
+                  </Button>
+                  <Button onClick={
+                    handlelvlterm
+                  }>
+                    Show
                   </Button>
                 </div>
               </form>
@@ -472,7 +525,7 @@ export default function LabRoomAssign() {
               </div>
             </div>
           )}
-
+         
           {viewRoomAssignment && !viewCourseAssignment && (
             <div className="col-7 grid-margin">
               <div className="card">
@@ -507,6 +560,64 @@ export default function LabRoomAssign() {
                         ))}
                       </tbody>
                     </table>
+
+                    {/* -------------------- */}
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th> level </th>
+                          <th> rooms </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                        {responseLab.map((data, index) => (
+                          <tr>
+                            <td>{data.lvl}</td>
+                            <td>
+                              <ul>
+                                {data.room.map((room, index) => (
+                                  <li key={index}>
+                                    {room}
+                                  </li>
+                                ))}
+                              </ul>
+                              </td> <td></td>
+                          </tr>
+
+                        ))}
+
+
+                        {/* {fixedRoomAllocation.map((room, index) => (
+                          <tr key={index}>
+                            <td> {room.room} </td>
+                            {room.courses.length === 0 ? (
+                              <td> None </td>
+                            ) : (
+                              <td>
+                                <ul>
+                                  {room.courses.map((course, index) => (
+
+                                    <li key={index}>
+                                      {course.level_term}  - {course.name} ({" "}
+                                      ) {course.section}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </td>
+                            )}
+                          </tr>
+                        ))} */}
+                      </tbody>
+                    </table>
+
+
+
+
+
+
+
+                    {/* ------------------------------ */}
                   </div>
                 </div>
               </div>
@@ -616,7 +727,7 @@ export default function LabRoomAssign() {
                     variant="success"
                     size="md"
                     className="btn-block btn-rounded"
-                    onClick={() => {}}
+                    onClick={() => { }}
                   >
                     Continue With This Assignment
                   </Button>
