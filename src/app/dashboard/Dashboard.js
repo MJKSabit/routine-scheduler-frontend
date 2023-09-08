@@ -1,7 +1,23 @@
 import React from "react";
-import { Alert, Button, Card, Form, InputGroup, Modal } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Alert, Button, Form, InputGroup, Modal } from "react-bootstrap";
+import { getTheoryEmail,getScheduleEmail,getSessionalEmail } from "../api/dashboard";
+import Emailtemplate from "./Emailtemplate";
 
 function App() {
+  const [theoryEmail, setTheoryEmail] = useState("");
+  const [scheduleEmail, setScheduleEmail] = useState("");
+  const [sessionalEmail, setSessionalEmail] = useState("");
+
+  useEffect(() => {
+    getTheoryEmail().then((res) => setTheoryEmail(res.email));
+    getScheduleEmail().then((res) => setScheduleEmail(res.email));
+    getSessionalEmail().then((res) => setSessionalEmail(res.email));
+  }
+  , []);
+
+
+  
   return (
     <div>
       <div className="page-header">
@@ -79,46 +95,7 @@ function App() {
           </div>
         </div>
       </div>
-      <div className="row">
-        <div className="col-12 grid-margin">
-          <div className="card">
-            <div className="card-body">
-              <h4 className="card-title mb-5">Email Templates</h4>
-              <div
-                class="row flex-row flex-nowrap "
-                style={{ overflowX: "auto" }}
-              >
-                <Card
-                  style={{ width: "28rem" }}
-                  bg="light"
-                  className="mr-3 col-4"
-                >
-                  <Card.Body>
-                    <Card.Title>
-                      Theory Course{" "}
-                      <i className="mdi mdi-email-open-outline mdi-24px float-right"></i>{" "}
-                    </Card.Title>
-                    <Card.Subtitle className="mb-2 text-muted">
-                      For selecting course
-                    </Card.Subtitle>
-                    <Card.Text>
-                      Hello {"{"}teacher_name{"}"}! <br />I would like to
-                      request you to fill up the form attached to this email for
-                      giving your preferred theory course. <br />
-                      {"{"}link{"}"} <br />
-                      Thank you.
-                    </Card.Text>
-                    <Button variant="outline-success">Copy</Button>
-                    <Button variant="outline-primary" className="float-right">
-                      Edit
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Emailtemplate theoryEmail={theoryEmail} scheduleEmail={scheduleEmail} sessionalEmail={sessionalEmail}/>
 
       <div className="row">
         <div className="col-12 grid-margin">
