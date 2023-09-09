@@ -18,7 +18,9 @@ const TheoryScheduleForm = lazy(() => import("./forms/TheorySchedule"));
 
 const TheorySchedule = lazy(() => import("./theory-schedule/AskForSchedule"));
 const FixedSchedule = lazy(() => import("./theory-schedule/FixedSchedule"));
+
 const LabRoomAssign = lazy(() => import("./lab-room-assign/LabRoomAssign"));
+const SessionalSchedule = lazy(() => import("./sessional-schedule/SessionalSchedule"));
 
 const Error404 = lazy(() => import("./error-pages/Error404"));
 const Error500 = lazy(() => import("./error-pages/Error500"));
@@ -47,6 +49,7 @@ export default function AppRoutes() {
             <Route path="/theory-schedule/ask" component={TheorySchedule} />
             <Route path="/theory-schedule/fixed" component={FixedSchedule} />
             <Route path="/room-assign" component={ LabRoomAssign } />
+            <Route path="/lab-schedule" component={ SessionalSchedule } />
             <Redirect to="/dashboard" />
           </Switch>
         ) : (
