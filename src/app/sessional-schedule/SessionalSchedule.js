@@ -1,19 +1,30 @@
 import { useEffect, useRef } from "react";
 import { useState } from "react";
-import { finalize, getStatus, initiate } from "../api/theory-assign";
+import {
+  finalize,
+  getRoomAssign,
+  getStatus,
+  getTheoryAssignement,
+  initiate,
+} from "../api/theory-assign";
 import { Alert, Button, FormCheck, Modal, ProgressBar } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
 import ScheduleSelectionTable, {
   days,
   possibleLabTimes,
 } from "../shared/ScheduleSelctionTable";
-import { getCourses, getSections } from "../api/db-crud";
+import { getCourses, getLabRooms, getSections } from "../api/db-crud";
 import { toast } from "react-hot-toast";
 import {
+  getAllSchedule,
   getSchedules as getTheorySchedules,
   setSchedules as setSchedulesAPI,
 } from "../api/theory-schedule";
 import { MultiSet, set } from "mnemonist";
+import {
+  getSessionalSchedules,
+  setSessionalSchedules,
+} from "../api/sessional-schedule";
 
 export default function SessionalSchedule() {
   const [theorySchedules, setTheorySchedules] = useState([]);
@@ -25,6 +36,9 @@ export default function SessionalSchedule() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isChanged, setIsChanged] = useState(false);
   const [dualCheck, setDualCheck] = useState(MultiSet.from([]));
+  const [roomAssignment, setRoomAssignment] = useState([]);
+  const [teacherAssignemnt, setTeacherAssignment] = useState([]);
+  const [allSchedules, setAllSchedules] = useState([]);
 
   const batches = [
     ...new Set(
@@ -57,36 +71,99 @@ export default function SessionalSchedule() {
     .filter((slot) => slot.course_id !== selectedCourse?.course_id)
     .map((slot) => `${slot.day} ${slot.time}`);
 
-  console.log(selectedLabSlots);
-
   const selectedCourseSlots = labSchedules
     .filter((slot) => slot.course_id === selectedCourse?.course_id)
     .map((slot) => `${slot.day} ${slot.time}`);
 
-  console.log(selectedCourseSlots);
-
   useEffect(() => {
-    getSections().then((sections) => {
-      setSections(sections.filter((section) => section.type === 1));
-    });
-    getCourses().then((courses) => {
-      setCourses(courses);
-    });
+    const loading = toast.loading("Loading data...");
+    const sections = getSections();
+    const courses = getCourses();
+    const rooms = getRoomAssign();
+    const theoryTeachers = getTheoryAssignement();
+    const schedules = getAllSchedule();
+
+    Promise.all([sections, courses, rooms, theoryTeachers, schedules]).then(
+      ([sections, courses, rooms, teachers, schedules]) => {
+        setSections(sections.filter((section) => section.type === 1));
+        setCourses(courses);
+        setRoomAssignment(
+          rooms.reduce(
+            (acc, room) => {
+              const course = `${room.batch} ${room.section} ${room.course_id}`;
+              if (!acc.courses[room.room]) acc.courses[room.room] = new Set();
+              acc.courses[room.room].add(course);
+              if (!acc.rooms[course]) acc.rooms[course] = new Set();
+              acc.rooms[course].add(room.room);
+              return acc;
+            },
+            { courses: {}, rooms: {} }
+          )
+        );
+
+        setTeacherAssignment(
+          teachers.reduce(
+            (acc, teacher) => {
+              const course = `${teacher.course_id}`;
+              if (!acc.courses[teacher.initial])
+                acc.courses[teacher.initial] = new Set();
+              acc.courses[teacher.initial].add(course);
+              if (!acc.teachers[course]) acc.teachers[course] = new Set();
+              acc.teachers[course].add(teacher.initial);
+              return acc;
+            },
+            { courses: {}, teachers: {} }
+          )
+        );
+        
+        setAllSchedules(schedules);
+        toast.dismiss(loading);
+      }
+    );
   }, []);
 
   useEffect(() => {
     if (selectedSection) {
-      let [batch, section] = selectedSection.split(" ");
-      section = section.substring(0, 1);
-      getTheorySchedules(batch, section).then((res) => {
+      const [batch, section] = selectedSection.split(" ");
+      const theorySection = section.substring(0, 1);
+      getTheorySchedules(batch, theorySection).then((res) => {
         setTheorySchedules(res);
       });
-      setLabSchedules([]);
+      getSessionalSchedules(batch, section).then((res) => {
+        setLabSchedules(res);
+        res.forEach((slot) => {
+          const course = courses.find((c) => c.course_id === slot.course_id);
+          if (course.class_per_week === 0.5) {
+            setDualCheck((dualCheck) => {
+              dualCheck.add(`${slot.day} ${slot.time}`);
+              return dualCheck;
+            });
+          }
+        });
+      });
     } else {
       setTheorySchedules([]);
       setLabSchedules([]);
+      setDualCheck(MultiSet.from([]));
     }
-  }, [selectedSection]);
+  }, [selectedSection, courses]);
+
+  const isLabSlotValid = (day, time) => {
+    if (!selectedCourse) return "Select a course first";
+
+    if (labTimes.findIndex((slot) => slot === `${day} ${time}`) === -1)
+      return "You can only select lab slots";
+
+    if (selectedCourseSlots.length >= Math.ceil(selectedCourse.class_per_week))
+      return `You can only select ${Math.ceil(
+        selectedCourse.class_per_week
+      )} slots`;
+
+    if (selectedCourse.class_per_week >= 1 && dualCheck.has(`${day} ${time}`))
+      return `You can only select 0.75 credit course for dual slot`;
+
+    return null;
+  };
 
   return (
     <div>
@@ -114,31 +191,10 @@ export default function SessionalSchedule() {
                     return;
                   }
 
-                  if (labTimes.findIndex((slot) => slot === `${day} ${time}`) === -1) {
-                    toast.error("You can only select lab slots");
-                    return;
-                  }
-
                   if (checked) {
-                    if (
-                      selectedCourseSlots.length >=
-                      Math.ceil(selectedCourse.class_per_week)
-                    ) {
-                      toast.error(
-                        `You can only select ${Math.ceil(
-                          selectedCourse.class_per_week
-                        )} slots`
-                      );
-                      return;
-                    }
-
-                    if (
-                      selectedCourse.class_per_week >= 1 &&
-                      dualCheck.has(`${day} ${time}`)
-                    ) {
-                      toast.error(
-                        `You can only select 0.75 credit course for dual slot`
-                      );
+                    const error = isLabSlotValid(day, time);
+                    if (error) {
+                      toast.error(error);
                       return;
                     }
 
@@ -266,13 +322,6 @@ export default function SessionalSchedule() {
                       setSelectedCourse(
                         courses.find((c) => c.course_id === e.target.value)
                       );
-                      // setSelectedSlots(
-                      //   new Set(
-                      //     theorySchedules
-                      //       .filter((s) => s.course_id === e.target.value)
-                      //       .map((slot) => `${slot.day} ${slot.time}`)
-                      //   )
-                      // );
                     }}
                   >
                     <option
@@ -319,21 +368,12 @@ export default function SessionalSchedule() {
                       return;
                     }
                     const [batch, section] = selectedSection.split(" ");
-                    // setSchedulesAPI(
-                    //   batch,
-                    //   section,
-                    //   selectedCourse.course_id,
-                    //   [...selectedLabSlots].map((slot) => {
-                    //     const [day, time] = slot.split(" ");
-                    //     return { day, time };
-                    //   })
-                    // ).then((res) => {
-                    //   toast.success("Schedule saved");
-                    //   setIsChanged(false);
-                    //   getTheorySchedules(batch, section).then(
-                    //     setTheorySchedules
-                    //   );
-                    // });
+                    setSessionalSchedules(batch, section, labSchedules).then(
+                      (res) => {
+                        toast.success("Schedule saved");
+                        setIsChanged(false);
+                      }
+                    );
                   }}
                 >
                   {" "}

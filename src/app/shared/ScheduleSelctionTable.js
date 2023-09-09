@@ -65,7 +65,7 @@ export default function ScheduleSelectionTable({
                     type="checkbox"
                     checked={
                       dualCheck.has(`${day} ${time}`)
-                        ? selected.has(`${day} ${time}`)
+                        ? selected.has(`${day} ${time}`) || filled.count(`${day} ${time}`) === 2
                         : filled.has(`${day} ${time}`) ||
                           selected.has(`${day} ${time}`)
                     }
