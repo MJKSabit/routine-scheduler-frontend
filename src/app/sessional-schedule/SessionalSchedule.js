@@ -13,10 +13,9 @@ import {
   getSchedules as getTheorySchedules,
   setSchedules as setSchedulesAPI,
 } from "../api/theory-schedule";
-import { MultiSet } from "mnemonist";
+import { MultiSet, set } from "mnemonist";
 
 export default function SessionalSchedule() {
-  // const [selectedSlots, setSelectedSlots] = useState(new Set([]));
   const [theorySchedules, setTheorySchedules] = useState([]);
   const [labSchedules, setLabSchedules] = useState([]);
   const [sections, setSections] = useState([]);
@@ -82,6 +81,10 @@ export default function SessionalSchedule() {
       getTheorySchedules(batch, section).then((res) => {
         setTheorySchedules(res);
       });
+      setLabSchedules([]);
+    } else {
+      setTheorySchedules([]);
+      setLabSchedules([]);
     }
   }, [selectedSection]);
 
@@ -108,6 +111,11 @@ export default function SessionalSchedule() {
                 onChange={(day, time, checked) => {
                   if (!selectedCourse) {
                     toast.error("Select a course first");
+                    return;
+                  }
+
+                  if (labTimes.findIndex((slot) => slot === `${day} ${time}`) === -1) {
+                    toast.error("You can only select lab slots");
                     return;
                   }
 
@@ -149,7 +157,7 @@ export default function SessionalSchedule() {
                   } else {
                     if (selectedCourse.class_per_week === 0.5) {
                       setDualCheck((dualCheck) => {
-                        dualCheck.delete(`${day} ${time}`);
+                        dualCheck.remove(`${day} ${time}`);
                         return dualCheck;
                       });
                     }
