@@ -3,32 +3,68 @@ import { useState } from "react";
 import { finalize, getStatus, initiate } from "../api/theory-assign";
 import { Alert, Button, FormCheck, Modal, ProgressBar } from "react-bootstrap";
 import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
-import ScheduleSelectionTable, { days } from "../shared/ScheduleSelctionTable";
+import ScheduleSelectionTable, {
+  days,
+  possibleLabTimes,
+} from "../shared/ScheduleSelctionTable";
 import { getCourses, getSections } from "../api/db-crud";
 import { toast } from "react-hot-toast";
 import {
-  getSchedules,
+  getSchedules as getTheorySchedules,
   setSchedules as setSchedulesAPI,
 } from "../api/theory-schedule";
+import { MultiSet } from "mnemonist";
 
 export default function SessionalSchedule() {
-  const [selectedSlots, setSelectedSlots] = useState(new Set([]));
-  const [schedules, setSchedules] = useState([]);
+  // const [selectedSlots, setSelectedSlots] = useState(new Set([]));
+  const [theorySchedules, setTheorySchedules] = useState([]);
+  const [labSchedules, setLabSchedules] = useState([]);
   const [sections, setSections] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isChanged, setIsChanged] = useState(false);
+  const [dualCheck, setDualCheck] = useState(MultiSet.from([]));
 
   const batches = [
     ...new Set(
       sections.map((section) => `${section.batch} ${section.level_term}`)
     ),
   ];
+
   const sectionsForBatch = sections.filter(
     (section) => `${section.batch} ${section.level_term}` === selectedBatch
   );
+
+  const filledTheorySlots = new Set(
+    theorySchedules.map((slot) => `${slot.day} ${slot.time}`)
+  );
+
+  const labTimes = [];
+  days.forEach((day) => {
+    possibleLabTimes.forEach((time) => {
+      if (
+        !filledTheorySlots.has(`${day} ${time}`) &&
+        !filledTheorySlots.has(`${day} ${(time + 1) % 12}`) &&
+        !filledTheorySlots.has(`${day} ${(time + 2) % 12}`)
+      ) {
+        labTimes.push(`${day} ${time}`);
+      }
+    });
+  });
+
+  const selectedLabSlots = labSchedules
+    .filter((slot) => slot.course_id !== selectedCourse?.course_id)
+    .map((slot) => `${slot.day} ${slot.time}`);
+
+  console.log(selectedLabSlots);
+
+  const selectedCourseSlots = labSchedules
+    .filter((slot) => slot.course_id === selectedCourse?.course_id)
+    .map((slot) => `${slot.day} ${slot.time}`);
+
+  console.log(selectedCourseSlots);
 
   useEffect(() => {
     getSections().then((sections) => {
@@ -41,9 +77,10 @@ export default function SessionalSchedule() {
 
   useEffect(() => {
     if (selectedSection) {
-      const [batch, section] = selectedSection.split(" ");
-      getSchedules(batch, section).then((res) => {
-        setSchedules(res);
+      let [batch, section] = selectedSection.split(" ");
+      section = section.substring(0, 1);
+      getTheorySchedules(batch, section).then((res) => {
+        setTheorySchedules(res);
       });
     }
   }, [selectedSection]);
@@ -51,16 +88,11 @@ export default function SessionalSchedule() {
   return (
     <div>
       <div className="page-header">
-        <h3 className="page-title"> Theory Schedule Assign </h3>
+        <h3 className="page-title"> Sessional Schedule Assign </h3>
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb">
-            <li className="breadcrumb-item">
-              <a href="!#" onClick={(event) => event.preventDefault()}>
-                Theory Schedule
-              </a>
-            </li>
             <li className="breadcrumb-item active" aria-current="page">
-              Fixed Schedule
+              Sessional Schedule
             </li>
           </ol>
         </nav>
@@ -71,19 +103,8 @@ export default function SessionalSchedule() {
             <div className="card-body">
               <h4 className="card-title">Schedule </h4>
               <ScheduleSelectionTable
-                filled={
-                  new Set([
-                    ...days.map((day) => `${day} 2`),
-                    ...schedules
-                      .filter(
-                        (s) =>
-                          !selectedCourse ||
-                          s.course_id !== selectedCourse.course_id
-                      )
-                      .map((slot) => `${slot.day} ${slot.time}`),
-                  ])
-                }
-                selected={selectedSlots}
+                filled={[...filledTheorySlots, ...selectedLabSlots]}
+                selected={selectedCourseSlots}
                 onChange={(day, time, checked) => {
                   if (!selectedCourse) {
                     toast.error("Select a course first");
@@ -91,25 +112,62 @@ export default function SessionalSchedule() {
                   }
 
                   if (checked) {
-                    if (selectedSlots.size >= selectedCourse.class_per_week) {
+                    if (
+                      selectedCourseSlots.length >=
+                      Math.ceil(selectedCourse.class_per_week)
+                    ) {
                       toast.error(
-                        `You can only select ${selectedCourse.class_per_week} slots`
+                        `You can only select ${Math.ceil(
+                          selectedCourse.class_per_week
+                        )} slots`
                       );
                       return;
                     }
+
+                    if (
+                      selectedCourse.class_per_week >= 1 &&
+                      dualCheck.has(`${day} ${time}`)
+                    ) {
+                      toast.error(
+                        `You can only select 0.75 credit course for dual slot`
+                      );
+                      return;
+                    }
+
+                    if (selectedCourse.class_per_week === 0.5) {
+                      setDualCheck((dualCheck) => {
+                        dualCheck.add(`${day} ${time}`);
+                        return dualCheck;
+                      });
+                    }
+
                     setIsChanged(true);
-                    setSelectedSlots(
-                      new Set([...selectedSlots, `${day} ${time}`])
-                    );
+                    setLabSchedules([
+                      ...labSchedules,
+                      { day, time, course_id: selectedCourse.course_id },
+                    ]);
                   } else {
+                    if (selectedCourse.class_per_week === 0.5) {
+                      setDualCheck((dualCheck) => {
+                        dualCheck.delete(`${day} ${time}`);
+                        return dualCheck;
+                      });
+                    }
                     setIsChanged(true);
-                    setSelectedSlots((selected) => {
-                      const newSelected = new Set(selected);
-                      newSelected.delete(`${day} ${time}`);
-                      return newSelected;
-                    });
+                    setLabSchedules(
+                      labSchedules.filter(
+                        (slot) =>
+                          !(
+                            slot.day === day &&
+                            slot.time === time &&
+                            slot.course_id === selectedCourse.course_id
+                          )
+                      )
+                    );
                   }
                 }}
+                labTimes={labTimes}
+                dualCheck={dualCheck}
               />
             </div>
           </div>
@@ -137,7 +195,7 @@ export default function SessionalSchedule() {
                     setSelectedSection(null);
                     setSelectedCourse(null);
                     setIsChanged(false);
-                    setSelectedSlots(new Set([]));
+                    // setSelectedSlots(new Set([]));
                   }}
                 >
                   <option
@@ -170,7 +228,7 @@ export default function SessionalSchedule() {
                     setSelectedSection(e.target.value);
                     setSelectedCourse(null);
                     setIsChanged(false);
-                    setSelectedSlots(new Set([]));
+                    // setSelectedSlots(new Set([]));
                   }}
                 >
                   <option
@@ -197,28 +255,16 @@ export default function SessionalSchedule() {
                   <Form.Select
                     className="form-control-sm btn-block"
                     onChange={(e) => {
-                      if (
-                        selectedCourse &&
-                        e.target.value !== selectedCourse.course_id &&
-                        isChanged &&
-                        !window.confirm(
-                          "You have unsaved changes. Are you sure you want to continue?"
-                        )
-                      ) {
-                        e.target.value = selectedCourse.course_id;
-                        return;
-                      }
                       setSelectedCourse(
                         courses.find((c) => c.course_id === e.target.value)
                       );
-                      setIsChanged(false);
-                      setSelectedSlots(
-                        new Set(
-                          schedules
-                            .filter((s) => s.course_id === e.target.value)
-                            .map((slot) => `${slot.day} ${slot.time}`)
-                        )
-                      );
+                      // setSelectedSlots(
+                      //   new Set(
+                      //     theorySchedules
+                      //       .filter((s) => s.course_id === e.target.value)
+                      //       .map((slot) => `${slot.day} ${slot.time}`)
+                      //   )
+                      // );
                     }}
                   >
                     <option
@@ -248,9 +294,9 @@ export default function SessionalSchedule() {
                   {selectedCourse && (
                     <ProgressBar
                       variant="success"
-                      now={selectedSlots.size}
+                      now={selectedCourseSlots.length}
                       max={selectedCourse.class_per_week}
-                      label={`Selected ${selectedSlots.size} / ${selectedCourse.class_per_week}`}
+                      label={`Selected ${selectedCourseSlots.length} / ${selectedCourse.class_per_week}`}
                       className="my-3"
                       style={{ height: "2rem" }}
                     />
@@ -265,19 +311,21 @@ export default function SessionalSchedule() {
                       return;
                     }
                     const [batch, section] = selectedSection.split(" ");
-                    setSchedulesAPI(
-                      batch,
-                      section,
-                      selectedCourse.course_id,
-                      [...selectedSlots].map((slot) => {
-                        const [day, time] = slot.split(" ");
-                        return { day, time };
-                      })
-                    ).then((res) => {
-                      toast.success("Schedule saved");
-                      setIsChanged(false);
-                      getSchedules(batch, section).then(setSchedules);
-                    });
+                    // setSchedulesAPI(
+                    //   batch,
+                    //   section,
+                    //   selectedCourse.course_id,
+                    //   [...selectedLabSlots].map((slot) => {
+                    //     const [day, time] = slot.split(" ");
+                    //     return { day, time };
+                    //   })
+                    // ).then((res) => {
+                    //   toast.success("Schedule saved");
+                    //   setIsChanged(false);
+                    //   getTheorySchedules(batch, section).then(
+                    //     setTheorySchedules
+                    //   );
+                    // });
                   }}
                 >
                   {" "}

@@ -13,6 +13,7 @@
     "bootstrap": "^4.6.0",
     "compass-mixins": "^0.12.12",
     "genetic-js": "^0.1.14",
+    "mnemonist": "^0.39.5",
     "nouislider": "^15.7.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.8.0",
