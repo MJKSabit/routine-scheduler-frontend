@@ -15,3 +15,6 @@ export const getStatus = () =>
 
 export const finalize = () =>
     axios.get(api_url("/schedule/theory/finalize")).then((res) => res.data);
+
+export const getAllSchedule = () =>
+    axios.get(api_url("/schedule/all")).then((res) => res.data);

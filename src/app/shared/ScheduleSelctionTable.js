@@ -1,5 +1,8 @@
+import { MultiSet } from "mnemonist";
+
 export const times = [8, 9, 10, 11, 12, 1, 2, 3, 4];
 export const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"];
+export const possibleLabTimes = [8, 11, 2];
 const break_times = new Set([1]);
 
 export default function ScheduleSelectionTable({
@@ -7,19 +10,30 @@ export default function ScheduleSelectionTable({
   selected,
   onChange,
   labTimes,
+  dualCheck,
 }) {
-  filled = filled || new Set();
-  selected = selected || new Set();
-  labTimes = labTimes || new Set(days.map((day) => `${day} 2`));
+  filled = (filled && MultiSet.from(filled)) || MultiSet.from([]);
+  selected = (selected && MultiSet.from(selected)) || MultiSet.from([]);
+  labTimes =
+    (labTimes && MultiSet.from(labTimes)) ||
+    MultiSet.from(days.map((day) => `${day} 2`));
   onChange =
     onChange || ((day, time, checked) => console.log(day, time, checked));
-  
-  const changedOnChange = (day, time, checked) => {
-    if (!(selected.has(`${day} ${time}`) && filled.has(`${day} ${time}`))) {
+  dualCheck = (dualCheck && MultiSet.from(dualCheck)) || MultiSet.from([]);
+
+  const changedOnChange = (day, time, checked, index) => {
+    if (
+      dualCheck.has(`${day} ${time}`)
+        ? filled.count(`${day} ${time}`) !== 2
+        : !(
+            selected.count(`${day} ${time}`) ===
+              filled.count(`${day} ${time}`) && filled.has(`${day} ${time}`)
+          )
+    ) {
       onChange(day, time, checked);
     }
-  }
-  
+  };
+
   return (
     <table class="table routine-table">
       <thead>
@@ -41,8 +55,8 @@ export default function ScheduleSelectionTable({
             {times
               .filter(
                 (time) =>
-                  !labTimes.has(`${day} ${time-1}`) &&
-                  !labTimes.has(`${day} ${time-2}`)
+                  !labTimes.has(`${day} ${(time - 1 + 12) % 12}`) &&
+                  !labTimes.has(`${day} ${(time - 2 + 12) % 12}`)
               )
               .map((time) => (
                 <td colSpan={labTimes.has(`${day} ${time}`) ? 3 : 1}>
@@ -50,13 +64,34 @@ export default function ScheduleSelectionTable({
                     class="big-checkbox"
                     type="checkbox"
                     checked={
-                      filled.has(`${day} ${time}`) || selected.has(`${day} ${time}`)
+                      dualCheck.has(`${day} ${time}`)
+                        ? selected.has(`${day} ${time}`) || filled.count(`${day} ${time}`) === 2
+                        : filled.has(`${day} ${time}`) ||
+                          selected.has(`${day} ${time}`)
                     }
-                    onChange={(e) => changedOnChange(day, time, e.target.checked)}
+                    onChange={(e) =>
+                      changedOnChange(day, time, e.target.checked, 0)
+                    }
+                    title={break_times.has(time)}
                     disabled={
-                      !selected.has(`${day} ${time}`) && (break_times.has(time) || filled.has(`${day} ${time}`))
+                      dualCheck.has(`${day} ${time}`)
+                        ? filled.count(`${day} ${time}`) === 2
+                        : !selected.has(`${day} ${time}`) &&
+                          (break_times.has(time) ||
+                            filled.has(`${day} ${time}`))
                     }
                   />
+                  {dualCheck.has(`${day} ${time}`) && (
+                    <input
+                      class="big-checkbox ml-2"
+                      type="checkbox"
+                      checked={filled.has(`${day} ${time}`)}
+                      onChange={(e) =>
+                        changedOnChange(day, time, e.target.checked, 1)
+                      }
+                      disabled={filled.has(`${day} ${time}`)}
+                    />
+                  )}
                 </td>
               ))}
           </tr>
