@@ -129,8 +129,8 @@ class Sidebar extends Component {
               <i className="mdi mdi-timer-edit-outline menu-icon"></i>
             </Link>
           </li>
-          <li className={ this.isPathActive('/generate-routine') ? 'nav-item active' : 'nav-item' }>
-            <Link className="nav-link" to="/generate-routine">
+          <li className={ this.isPathActive('/pdf') ? 'nav-item active' : 'nav-item' }>
+            <Link className="nav-link" to="/pdf">
               <span className="menu-title">Generate Routine</span>
               <i className="mdi mdi-file-pdf-box menu-icon"></i>
             </Link>
