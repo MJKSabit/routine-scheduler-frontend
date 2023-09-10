@@ -1,28 +1,18 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useState } from "react";
-import {
-  finalize,
-  getRoomAssign,
-  getStatus,
-  getTheoryAssignement,
-  initiate,
-} from "../api/theory-assign";
-import { Alert, Button, FormCheck, Modal, ProgressBar } from "react-bootstrap";
-import { Form, Row, Col, FormControl, FormGroup } from "react-bootstrap";
+import { Button, ProgressBar } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import ScheduleSelectionTable, {
   days,
   possibleLabTimes,
 } from "../shared/ScheduleSelctionTable";
-import { getCourses, getLabRooms, getSections } from "../api/db-crud";
+import { getCourses, getSections } from "../api/db-crud";
 import { toast } from "react-hot-toast";
-import {
-  getAllSchedule,
-  getSchedules as getTheorySchedules,
-  setSchedules as setSchedulesAPI,
-} from "../api/theory-schedule";
-import { MultiSet, set } from "mnemonist";
+import { getSchedules as getTheorySchedules } from "../api/theory-schedule";
+import { MultiSet } from "mnemonist";
 import {
   getSessionalSchedules,
+  roomContradiction,
   setSessionalSchedules,
 } from "../api/sessional-schedule";
 
@@ -36,9 +26,9 @@ export default function SessionalSchedule() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isChanged, setIsChanged] = useState(false);
   const [dualCheck, setDualCheck] = useState(MultiSet.from([]));
-  const [roomAssignment, setRoomAssignment] = useState([]);
-  const [teacherAssignemnt, setTeacherAssignment] = useState([]);
-  const [allSchedules, setAllSchedules] = useState([]);
+
+  const [roomContradictions, setRoomContradictions] = useState([]);
+  const [teacherContradictions, setTeacherContradictions] = useState([]);
 
   const batches = [
     ...new Set(
@@ -79,47 +69,12 @@ export default function SessionalSchedule() {
     const loading = toast.loading("Loading data...");
     const sections = getSections();
     const courses = getCourses();
-    const rooms = getRoomAssign();
-    const theoryTeachers = getTheoryAssignement();
-    const schedules = getAllSchedule();
 
-    Promise.all([sections, courses, rooms, theoryTeachers, schedules]).then(
-      ([sections, courses, rooms, teachers, schedules]) => {
-        setSections(sections.filter((section) => section.type === 1));
-        setCourses(courses);
-        setRoomAssignment(
-          rooms.reduce(
-            (acc, room) => {
-              const course = `${room.batch} ${room.section} ${room.course_id}`;
-              if (!acc.courses[room.room]) acc.courses[room.room] = new Set();
-              acc.courses[room.room].add(course);
-              if (!acc.rooms[course]) acc.rooms[course] = new Set();
-              acc.rooms[course].add(room.room);
-              return acc;
-            },
-            { courses: {}, rooms: {} }
-          )
-        );
-
-        setTeacherAssignment(
-          teachers.reduce(
-            (acc, teacher) => {
-              const course = `${teacher.course_id}`;
-              if (!acc.courses[teacher.initial])
-                acc.courses[teacher.initial] = new Set();
-              acc.courses[teacher.initial].add(course);
-              if (!acc.teachers[course]) acc.teachers[course] = new Set();
-              acc.teachers[course].add(teacher.initial);
-              return acc;
-            },
-            { courses: {}, teachers: {} }
-          )
-        );
-        
-        setAllSchedules(schedules);
-        toast.dismiss(loading);
-      }
-    );
+    Promise.all([sections, courses]).then(([sections, courses]) => {
+      setSections(sections.filter((section) => section.type === 1));
+      setCourses(courses);
+      toast.dismiss(loading);
+    });
   }, []);
 
   useEffect(() => {
@@ -147,6 +102,16 @@ export default function SessionalSchedule() {
       setDualCheck(MultiSet.from([]));
     }
   }, [selectedSection, courses]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      const [batch, section] = selectedSection.split(" ");
+      const course_id = selectedCourse.course_id;
+      roomContradiction(batch, section, course_id).then((res) => {
+        setRoomContradictions(res);
+      });
+    }
+  }, [selectedCourse, selectedSection]);
 
   const isLabSlotValid = (day, time) => {
     if (!selectedCourse) return "Select a course first";
@@ -384,6 +349,75 @@ export default function SessionalSchedule() {
           </div>
         </div>
       </div>
+      {roomContradictions.length > 0 && (
+        <div className="row">
+          <div className="col-12 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <h4 className="card-title">Room Contradictions</h4>
+                <table className="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th> Course </th>
+                      <th> Section </th>
+                      <th> Room </th>
+                      <th> Day </th>
+                      <th> Time </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {roomContradictions.map((contradiction) => (
+                      <tr>
+                        <td> {contradiction.course_id} </td>
+                        <td> {contradiction.section} </td>
+                        <td> {contradiction.room} </td>
+                        <td> {contradiction.day} </td>
+                        <td> {contradiction.time} </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {teacherContradictions.length > 0 && (
+        <div className="row">
+          <div className="col-12 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <h4 className="card-title">Teacher Contradictions</h4>
+                {teacherContradictions.map((teacher) => (
+                  <>
+                    <p> {teacher.initial} </p>
+                    <table className="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th> Course </th>
+                          <th> Section </th>
+                          <th> Day </th>
+                          <th> Time </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {teacher.schedule.map((slot) => (
+                          <tr>
+                            <td> {slot.course_id} </td>
+                            <td> {slot.section} </td>
+                            <td> {slot.day} </td>
+                            <td> {slot.time} </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>                         
+                  </>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
