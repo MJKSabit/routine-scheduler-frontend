@@ -13,13 +13,14 @@ const Courses = lazy(() => import("./database/Courses"));
 
 const TheoryPreference = lazy(() => import("./theory-pref/TheoryPreference"));
 const TheorySelect = lazy(() => import("./forms/TheorySelect"));
-
+const SessionalSelect = lazy(() => import("./forms/SessionalSelect"));
 const TheoryScheduleForm = lazy(() => import("./forms/TheorySchedule"));
 
 const TheorySchedule = lazy(() => import("./theory-schedule/AskForSchedule"));
 const FixedSchedule = lazy(() => import("./theory-schedule/FixedSchedule"));
 
 const LabRoomAssign = lazy(() => import("./lab-room-assign/LabRoomAssign"));
+const SessionalPreference = lazy(() => import("./sessional-pref/SessionalPreference"));
 const SessionalSchedule = lazy(() => import("./sessional-schedule/SessionalSchedule"));
 
 const Error404 = lazy(() => import("./error-pages/Error404"));
@@ -37,6 +38,7 @@ export default function AppRoutes() {
     <Suspense fallback={<Spinner />}>
       <Switch>
         <Route exact path="/form/theory-pref/:id" component={TheorySelect} />
+        <Route exact path="/form/sessional-pref/:id" component={SessionalSelect} />
         <Route exact path="/form/theory-sched/:id" component={TheoryScheduleForm} />
         {user.loggedIn ? (
           <Switch>
@@ -49,6 +51,7 @@ export default function AppRoutes() {
             <Route path="/theory-schedule/ask" component={TheorySchedule} />
             <Route path="/theory-schedule/fixed" component={FixedSchedule} />
             <Route path="/room-assign" component={ LabRoomAssign } />
+            <Route path="/lab-assign" component={ SessionalPreference } />
             <Route path="/lab-schedule" component={ SessionalSchedule } />
             <Redirect to="/dashboard" />
           </Switch>
