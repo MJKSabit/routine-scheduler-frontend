@@ -14,6 +14,7 @@ import {
   getSessionalSchedules,
   roomContradiction,
   setSessionalSchedules,
+  teacherContradiction,
 } from "../api/sessional-schedule";
 
 export default function SessionalSchedule() {
@@ -108,8 +109,25 @@ export default function SessionalSchedule() {
       const [batch, section] = selectedSection.split(" ");
       const course_id = selectedCourse.course_id;
       roomContradiction(batch, section, course_id).then((res) => {
-        setRoomContradictions(res);
+        setRoomContradictions(
+          res.filter(
+            (c) => !(c.course_id === course_id && c.section === section)
+          )
+        );
       });
+      teacherContradiction(batch, section, course_id).then((res) => {
+        setTeacherContradictions(
+          res.map((t) => ({
+            ...t,
+            schedule: t.schedule.filter(
+              (s) => !(s.course_id === course_id && s.section === section)
+            ),
+          }))
+        );
+      });
+    } else {
+      setRoomContradictions([]);
+      setTeacherContradictions([]);
     }
   }, [selectedCourse, selectedSection]);
 
@@ -367,7 +385,7 @@ export default function SessionalSchedule() {
                   </thead>
                   <tbody>
                     {roomContradictions.map((contradiction) => (
-                      <tr>
+                      <tr className={selectedCourseSlots.includes(`${contradiction.day} ${contradiction.time}`) ? "table-danger" : ""}>
                         <td> {contradiction.course_id} </td>
                         <td> {contradiction.section} </td>
                         <td> {contradiction.room} </td>
@@ -388,9 +406,9 @@ export default function SessionalSchedule() {
             <div className="card">
               <div className="card-body">
                 <h4 className="card-title">Teacher Contradictions</h4>
-                {teacherContradictions.map((teacher) => (
+                {teacherContradictions.map((teacher) => ( teacher.schedule.length > 0 &&
                   <>
-                    <p> {teacher.initial} </p>
+                    <p className="mt-3"> {teacher.initial} </p>
                     <table className="table table-bordered">
                       <thead>
                         <tr>
@@ -402,7 +420,10 @@ export default function SessionalSchedule() {
                       </thead>
                       <tbody>
                         {teacher.schedule.map((slot) => (
-                          <tr>
+                          <tr className={selectedCourseSlots.includes(`${slot.day} ${slot.time}`) || 
+                          selectedCourseSlots.includes(`${slot.day} ${(slot.time - 1) % 12}`) ||
+                          selectedCourseSlots.includes(`${slot.day} ${(slot.time - 2) % 12}`)
+                          ? "table-danger" : ""}>
                             <td> {slot.course_id} </td>
                             <td> {slot.section} </td>
                             <td> {slot.day} </td>
@@ -410,7 +431,7 @@ export default function SessionalSchedule() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>                         
+                    </table>
                   </>
                 ))}
               </div>
