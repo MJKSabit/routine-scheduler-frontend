@@ -211,6 +211,7 @@ export default function ShowPdf() {
                         <Form.Group controlId="exampleForm.ControlSelect1">
                             <Form.Label>select initial</Form.Label>
                             <Form.Control as="select" style={{ width: "25%" }} onChange={(e) => handleSelectInitial(e.target.value)}>
+                                <option value={''} hidden>Select Teacher</option>
                                 {initials.map((item) => (
                                     <option key={item.iinitial} value={item.initial}>
                                         {item.initial}
