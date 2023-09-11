@@ -31,6 +31,9 @@ const ForgetPassword = lazy(() => import("./user-pages/ForgetPassword"));
 
 const BlankPage = lazy(() => import("./general-pages/BlankPage"));
 
+const pdfPage = lazy(() => import("./pdf/ShowPdf"));
+
+
 export default function AppRoutes() {
   const { user } = useContext(UserContext);
 
@@ -53,6 +56,7 @@ export default function AppRoutes() {
             <Route path="/room-assign" component={ LabRoomAssign } />
             <Route path="/lab-assign" component={ SessionalPreference } />
             <Route path="/lab-schedule" component={ SessionalSchedule } />
+            <Route path="/pdf" component={pdfPage} />
             <Redirect to="/dashboard" />
           </Switch>
         ) : (
