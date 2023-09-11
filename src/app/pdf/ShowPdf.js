@@ -82,7 +82,7 @@ export default function ShowPdf() {
         });
       } else if (forTeacher) {
         getPdfForTeacher(selectedInitial).then((res) => {
-          const pdfBlob = new Blob([res], { type: "application/ pdf" });
+          const pdfBlob = new Blob([res], { type: "application/pdf" });
           setpdfData(pdfBlob);
         });
       } else if (forRoom) {
