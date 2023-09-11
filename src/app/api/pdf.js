@@ -23,3 +23,9 @@ export const getAllLevelTerms = () =>
 
 export const regeneratePdfLevelTerm = (lvlTerm) =>
     axios.get(api_url(`/pdf/generate/${lvlTerm}`)).then((res) => res.data);
+
+export const regenerateTeacher = (initial) =>
+    axios.get(api_url(`/pdf/generateTeacher/${initial}`)).then((res) => res.data);
+
+export const regenerateRoom = (room) =>
+    axios.get(api_url(`/pdf/generateRoom/${room}`)).then((res) => res.data);

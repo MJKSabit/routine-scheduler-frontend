@@ -8,6 +8,8 @@ import {
   getPdfForRoom,
   getAllLevelTerms,
   regeneratePdfLevelTerm,
+  regenerateRoom,
+  regenerateTeacher,
 } from "../api/pdf";
 import toast from "react-hot-toast";
 
@@ -80,7 +82,7 @@ export default function ShowPdf() {
         });
       } else if (forTeacher) {
         getPdfForTeacher(selectedInitial).then((res) => {
-          const pdfBlob = new Blob([res], { type: "application/pdf" });
+          const pdfBlob = new Blob([res], { type: "application/ pdf" });
           setpdfData(pdfBlob);
         });
       } else if (forRoom) {
@@ -93,6 +95,30 @@ export default function ShowPdf() {
       console.log(err);
     }
   };
+
+  const regeneratePdf = () => {
+    try {
+      if (forStudent) {
+        const toastId = toast.loading("Generating PDF...");
+        regeneratePdfLevelTerm(lvlTerm).then((res) => {
+          toast.remove(toastId);
+        });
+      } else if (forTeacher) {
+        const toastId = toast.loading("Generating PDF...");
+        regenerateTeacher(selectedInitial).then((res) => {
+          toast.remove(toastId);
+        });
+      } else if (forRoom) {
+        const toastId = toast.loading("Generating PDF...");
+        regenerateRoom(selectedRoom).then((res) => {
+          toast.remove(toastId);
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
 
   return (
     <div>
@@ -208,12 +234,7 @@ export default function ShowPdf() {
         <div className="col-4 grid-margin">
           <div className="card">
             <div className="card-body d-flex justify-content-between">
-              <Button variant="outline-dark" onClick={() => {
-                const toastId = toast.loading("Generating PDF...");
-                regeneratePdfLevelTerm(lvlTerm).then((res) => {
-                    toast.remove(toastId);
-                });
-              }}>Regenerate</Button>
+              <Button variant="outline-dark" onClick={regeneratePdf}>Regenerate</Button>
               <Button variant="primary" onClick={displayPdf}>
                 Show
               </Button>
