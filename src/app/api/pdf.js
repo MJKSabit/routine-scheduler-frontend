@@ -17,3 +17,9 @@ export const getPdfForRoom = (initial) =>
 
 export const getAllRooms = () =>
     axios.get(api_url(`/pdf/allRooms`)).then((res) => res.data);
+
+export const getAllLevelTerms = () =>
+    axios.get(api_url(`/pdf/allLevelTerm`)).then((res) => res.data);
+
+export const regeneratePdfLevelTerm = (lvlTerm) =>
+    axios.get(api_url(`/pdf/generate/${lvlTerm}`)).then((res) => res.data);

@@ -1,266 +1,244 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Form, FormGroup, Button } from "react-bootstrap";
-import { getAllInitial, getPdfForStudent, getPdfForTeacher , getAllRooms,getPdfForRoom } from '../api/pdf';
+import {
+  getAllInitial,
+  getPdfForStudent,
+  getPdfForTeacher,
+  getAllRooms,
+  getPdfForRoom,
+  getAllLevelTerms,
+  regeneratePdfLevelTerm,
+} from "../api/pdf";
+import toast from "react-hot-toast";
 
 export default function ShowPdf() {
+  const [forStudent, setForStudent] = useState(true);
+  const [forTeacher, setForTeacher] = useState(false);
+  const [forRoom, setForRoom] = useState(false);
 
-    const [forStudent, setForStudent] = useState(true);
-    const [forTeacher, setForTeacher] = useState(false);
-    const [forRoom, setForRoom] = useState(false);
+  const [initials, setInitials] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [allLevels, setAllLevels] = useState([]);
 
+  useEffect(() => {
+    getAllInitial().then((res) => {
+      setInitials(res.initials);
+    });
+    getAllRooms().then((res) => {
+      setRooms(res.rooms);
+    });
+    getAllLevelTerms().then((res) => {
+      setAllLevels(res);
+    });
+  }, []);
 
+  const [selectedInitial, setSelectedInitial] = useState("");
+  const handleSelectInitial = (selectedOption) => {
+    setSelectedInitial(selectedOption);
+  };
+  const [selectedRoom, setSelectedRoom] = useState("");
+  const handleSelectRoom = (selectedOption) => {
+    setSelectedRoom(selectedOption);
+  };
 
-    const [initials, setInitials] = useState([]);
+  const [lvlTerm, setLvlTerm] = useState("L4-T1");
 
-    useEffect(() => {
-        getAllInitial().then((res) => {
-            setInitials(res.initials);
-        });
-    }, []);
+  const [pdfData, setpdfData] = useState("");
 
-    const [rooms, setRooms] = useState([]);
+  const handleSelect = (e) => {
+    const selectedOption = e.target.value;
+    console.log(selectedOption);
+    setForStudent(false);
+    setForTeacher(false);
+    setForRoom(false);
 
-    useEffect(() => {
-        getAllRooms().then((res) => {
-            setRooms(res.rooms);
-        });
-    }, []);
-
-    const [selectedInitial, setSelectedInitial] = useState('');
-    const handleSelectInitial = (selectedOption) => {
-        setSelectedInitial(selectedOption);
-    };
-    const [selectedRoom, setSelectedRoom] = useState('');
-    const handleSelectRoom = (selectedOption) => {
-        setSelectedRoom(selectedOption);
+    switch (selectedOption) {
+      case "For Student":
+        setForStudent(true);
+        break;
+      case "For Teacher":
+        setForTeacher(true);
+        break;
+      case "For Room":
+        setForRoom(true);
+        break;
+      default:
+        break;
     }
+  };
 
-    const [lvlTerm, setLvlTerm] = useState('L4-T1');
-    const [section, setSection] = useState('A');
-    
+  const handleRadioChange = (event) => {
+    setLvlTerm(event.target.value);
+  };
 
-    const [pdfData, setpdfData] = useState('');
-
-    const handleSelect = (e) => {
-        const selectedOption = e.target.value;
-        console.log(selectedOption);
-        setForStudent(false);
-        setForTeacher(false);
-        setForRoom(false);
-
-        switch (selectedOption) {
-            case 'For Student':
-                setForStudent(true);
-                break;
-            case 'For Teacher':
-                setForTeacher(true);
-                break;
-            case 'For Room':
-                setForRoom(true);
-                break;
-            default:
-                break;
-        }
-    };
-
-
-    const handleRadioChange = (event) => {
-        setLvlTerm(event.target.value);
-    };
-    const handleRadioChangeSection = (event) => {
-        setSection(event.target.value);
-    };
-
-   
-
-    const displayPdf = () => {
-        try {
-            if (forStudent) {
-                getPdfForStudent(lvlTerm, section).then((res) => {
-                    const pdfBlob = new Blob([res], { type: 'application/pdf' });
-                    setpdfData(pdfBlob);
-                });
-            } else if (forTeacher) {
-                getPdfForTeacher(selectedInitial).then((res) => {
-                    const pdfBlob = new Blob([res], { type: 'application/pdf' });
-                    setpdfData(pdfBlob);
-                });
-            } else if (forRoom) {
-                getPdfForRoom(selectedRoom).then((res) => {
-                    const pdfBlob = new Blob([res], { type: 'application/pdf' });
-                    setpdfData(pdfBlob);
-                });
-            }
-        } catch (err) {
-            console.log(err);
-        }
+  const displayPdf = () => {
+    try {
+      if (forStudent) {
+        getPdfForStudent(lvlTerm, "a").then((res) => {
+          const pdfBlob = new Blob([res], { type: "application/pdf" });
+          setpdfData(pdfBlob);
+        });
+      } else if (forTeacher) {
+        getPdfForTeacher(selectedInitial).then((res) => {
+          const pdfBlob = new Blob([res], { type: "application/pdf" });
+          setpdfData(pdfBlob);
+        });
+      } else if (forRoom) {
+        getPdfForRoom(selectedRoom).then((res) => {
+          const pdfBlob = new Blob([res], { type: "application/pdf" });
+          setpdfData(pdfBlob);
+        });
+      }
+    } catch (err) {
+      console.log(err);
     }
+  };
 
+  return (
+    <div>
+      <div className="page-header">
+        <h3 className="page-title"> Routine Generate </h3>
+        <nav aria-label="breadcrumb">
+          <ol className="breadcrumb">
+            <li className="breadcrumb-item">PDF Format</li>
+          </ol>
+        </nav>
+      </div>
 
+      <div className="row">
+        <div className="col-3 grid-margin">
+          <div className="card">
+            <div className="card-body">
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Control
+                  as="select"
+                  onChange={handleSelect}
+                  className="btn-block"
+                >
+                  <option value={""} hidden>
+                    {" "}
+                    Select Format{" "}
+                  </option>
+                  <option value={"For Student"}>For Student</option>
+                  <option value={"For Teacher"}>For Teacher</option>
+                  <option value={"For Room"}>For Room</option>
+                </Form.Control>
+              </Form.Group>
+            </div>
+          </div>
+        </div>
 
+        {forStudent && (
+          <div className="col-5 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <Form>
+                  <FormGroup>
+                    <div className="d-flex align-items-center">
+                      {allLevels.map((item) => (
+                        <Form.Check
+                          className="m-0 mr-4"
+                          inline
+                          label={item}
+                          type="radio"
+                          value={item}
+                          checked={lvlTerm === item}
+                          onChange={handleRadioChange}
+                        />
+                      ))}
+                    </div>
+                  </FormGroup>
+                </Form>
+              </div>
+            </div>
+          </div>
+        )}
 
-    return (
+        {forTeacher && (
+          <div className="col-5 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <Form.Group controlId="exampleForm.ControlSelect1">
+                  <Form.Control
+                    as="select"
+                    className="btn-block"
+                    onChange={(e) => handleSelectInitial(e.target.value)}
+                  >
+                    <option value={""} hidden>
+                      Select Teacher
+                    </option>
+                    {initials.map((item) => (
+                      <option key={item.iinitial} value={item.initial}>
+                        {item.initial}
+                      </option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+              </div>
+            </div>
+          </div>
+        )}
 
-        <Container className="mt-4">
-            <Row className="mb-3">
-                <Col>
-                    <Form.Group controlId="exampleForm.ControlSelect1">
-                        <Form.Label>select type</Form.Label>
-                        <Form.Control
-                            as="select"
-                            onChange={handleSelect}
-                            style={{ width: "25%" }}
-                        >
-                            <option value={'For Student'}>For Student</option>
-                            <option value={'For Teacher'}>For Teacher</option>
-                            <option value={'For Room'}>For Room</option>
-                        </Form.Control>
-                    </Form.Group>
-                </Col>
-            </Row>
+        {forRoom && (
+          <div className="col-5 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <Form.Group controlId="exampleForm.ControlSelect1">
+                  <Form.Control
+                    as="select"
+                    className="btn-block"
+                    onChange={(e) => handleSelectRoom(e.target.value)}
+                  >
+                    <option value={""} hidden>
+                      {" "}
+                      Select Room{" "}
+                    </option>
+                    {rooms.map((item) => (
+                      <option key={item.iinitial} value={item.room}>
+                        {item.room}
+                      </option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+              </div>
+            </div>
+          </div>
+        )}
 
-            {forStudent &&
-                <>
-                    <Row className="mb-3">
-                        <Col>
-                            <Form>
-                                <FormGroup>
-                                    <div key="inline-radio" className="d-flex align-items-center">
-                                        <Form.Check
-                                            inline
-                                            label="L4-T1"
-                                            name="group1"
-                                            type="radio"
-                                            id="inline-radio-1"
-                                            value="L4-T1"
-                                            checked={lvlTerm === 'L4-T1'}
-                                            onChange={handleRadioChange}
-                                        />
-                                        <Form.Check
-                                            inline
-                                            label="L3-T2"
-                                            name="group1"
-                                            type="radio"
-                                            id="inline-radio-1"
-                                            value="L3-T2"
-                                            checked={lvlTerm === 'L3-T2'}
-                                            onChange={handleRadioChange}
-                                        />
-                                        <Form.Check
-                                            inline
-                                            label="L2-T2"
-                                            name="group1"
-                                            type="radio"
-                                            id="inline-radio-1"
-                                            value="L2-T2"
-                                            checked={lvlTerm === 'L2-T2'}
-                                            onChange={handleRadioChange}
-                                        />
-                                        <Form.Check
-                                            inline
-                                            label="L1-T2"
-                                            name="group1"
-                                            type="radio"
-                                            id="inline-radio-1"
-                                            value="L1-T2"
-                                            checked={lvlTerm === 'L1-T2'}
-                                            onChange={handleRadioChange}
-                                        />
-                                    </div>
-                                </FormGroup>
-                            </Form>
-                        </Col>
-                    </Row>
-                    <Row className="mb-3">
-                        <Col>
-                            <Form>
-                                <FormGroup>
-                                    <div key="inline-radio" className="d-flex align-items-center">
-                                        <Form.Check
-                                            inline
-                                            label="A"
-                                            name="group1"
-                                            type="radio"
-                                            id="inline-radio-1"
-                                            value="A"
-                                            checked={section === 'A'}
-                                            onChange={handleRadioChangeSection}
-                                        />
-                                        <Form.Check
-                                            inline
-                                            label="B"
-                                            name="group1"
-                                            type="radio"
-                                            id="inline-radio-1"
-                                            value="B"
-                                            checked={section === 'B'}
-                                            onChange={handleRadioChangeSection}
-                                        />
-                                    </div>
-                                </FormGroup>
-                            </Form>
-                        </Col>
-                    </Row>
-                </>
-            }
+        <div className="col-4 grid-margin">
+          <div className="card">
+            <div className="card-body d-flex justify-content-between">
+              <Button variant="outline-dark" onClick={() => {
+                const toastId = toast.loading("Generating PDF...");
+                regeneratePdfLevelTerm(lvlTerm).then((res) => {
+                    toast.remove(toastId);
+                });
+              }}>Regenerate</Button>
+              <Button variant="primary" onClick={displayPdf}>
+                Show
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <Container className="mt-4">
 
-            {forTeacher &&
-                <Row className="mb-3">
-                    <Col>
-                        <Form.Group controlId="exampleForm.ControlSelect1">
-                            <Form.Label>select initial</Form.Label>
-                            <Form.Control as="select" style={{ width: "25%" }} onChange={(e) => handleSelectInitial(e.target.value)}>
-                                <option value={''} hidden>Select Teacher</option>
-                                {initials.map((item) => (
-                                    <option key={item.iinitial} value={item.initial}>
-                                        {item.initial}
-                                    </option>
-                                ))}
-                            </Form.Control>
-                        </Form.Group>
-
-                    </Col>
-                </Row>
-            }
-            {forRoom &&
-                <Row className="mb-3">
-                    <Col>
-                        <Form.Group controlId="exampleForm.ControlSelect1">
-                            <Form.Label>select room</Form.Label>
-                            <Form.Control as="select" style={{ width: "25%" }} onChange={(e) => handleSelectRoom(e.target.value)}>
-                                {rooms.map((item) => (
-                                    <option key={item.iinitial} value={item.room}>
-                                        {item.room}
-                                    </option>
-                                ))}
-                            </Form.Control>
-                        </Form.Group>
-                    </Col>
-                </Row>
-            }
-
-            <Row className="mb-3">
-                <Col>
-                    <Button variant="primary" onClick={displayPdf}>Show</Button>
-                </Col>
-            </Row>
-
-            {pdfData && (
-                <Row>
-                    <Col>
-                        <div>
-                            <iframe
-                                title="PDF Viewer"
-                                src={URL.createObjectURL(pdfData)}
-                                width="100%"
-                                height="600px"
-                            />
-                        </div>
-                    </Col>
-                </Row>
-            )}
-        </Container>
-
-    )
+        {pdfData && (
+          <Row>
+            <Col>
+              <div>
+                <iframe
+                  title="PDF Viewer"
+                  src={URL.createObjectURL(pdfData)}
+                  width="100%"
+                  height="600px"
+                />
+              </div>
+            </Col>
+          </Row>
+        )}
+      </Container>
+    </div>
+  );
 }
