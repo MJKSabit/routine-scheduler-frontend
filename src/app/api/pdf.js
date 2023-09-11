@@ -29,3 +29,6 @@ export const regenerateTeacher = (initial) =>
 
 export const regenerateRoom = (room) =>
     axios.get(api_url(`/pdf/generateRoom/${room}`)).then((res) => res.data);
+
+export const sendMail = (initial) => 
+    axios.get(api_url(`/pdf/sendMail/${initial}`)).then((res) => res.data);

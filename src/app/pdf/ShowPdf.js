@@ -12,6 +12,7 @@ import {
   regenerateTeacher,
 } from "../api/pdf";
 import toast from "react-hot-toast";
+import { sendMail } from "../api/pdf";
 
 export default function ShowPdf() {
   const [forStudent, setForStudent] = useState(true);
@@ -260,6 +261,22 @@ export default function ShowPdf() {
           </Row>
         )}
       </Container>
+
+      {forTeacher && (
+        <div className="row">
+          <div className="col-3 grid-margin">
+            <div className="card">
+              <div className="card-body">
+                <Button variant="outline-dark" onClick={() => {
+                  sendMail(selectedInitial).then((res) => {
+                    toast.success("Mail Sent Successfully");
+                  })
+                }}>Send Mail</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
