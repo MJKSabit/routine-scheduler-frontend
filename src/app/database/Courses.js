@@ -112,7 +112,7 @@ export default function Courses() {
                     setSelectedCourse({
                       course_id: "",
                       name: "",
-                      type: "Theory",
+                      type: 0,
                       batch: 0,
                       sections: [],
                       session: sessionValue[0],
